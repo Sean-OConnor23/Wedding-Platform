@@ -1,0 +1,20 @@
+[
+  {
+    "id": "1",
+    "category": "schedule",
+    "title": "Wedding Date and Time",
+    "content": "The wedding ceremony starts exactly at 4:00 PM on Saturday, October 10th. Guests should arrive starting at 3:30 PM to find their seats."
+  },
+  {
+    "id": "2",
+    "category": "location",
+    "title": "Venue Address and Parking",
+    "content": "The wedding takes place at The Grand Greenhouse, located at 123 Maple Lane, Nashville, TN. There is a free, dedicated parking lot on-site for all guests."
+  },
+  {
+    "id": "3",
+    "category": "clothing",
+    "title": "Dress Code",
+    "content": "The dress code for our wedding is Semi-Formal or Cocktail attire. The ceremony will be outdoors on grass, so please choose your footwear accordingly."
+  }
+]
