@@ -9,40 +9,40 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 
 ## Architecture Visualization
 ```
-                       ┌───────────────────────────┐
-                       │   WEDDING WEBSITE UI      │
-                       │ (Azure Static Web Apps)   │
-                       └─────┬───────────────┬─────┘
-                             │               │
-    HTTP POST /ask-assistant |               │ HTTP POST /upload-image
-      (Real-time JSON Chat)  │               │ (Binary Image Stream)
-                             ▼               ▼
-┌────────────────────────────────────┐ ┌────────────────────────────────────┐
-│  1. CONVERSATIONAL MICROSERVICE    │ │     2. PHOTO PORTAL MICROSERVICE   │
-│       (Azure Function App)         │ │         (Azure Function App)       │
-├────────────────────────────────────┤ ├────────────────────────────────────┤
-│                                    │ │                                    │
-│       [ Azure Function ]           │ │       [ Azure Function ]           │
-│               │                    │ │        (Ingest Gatekeeper)         │
-│     Search query                   │ │                │                   │
-│               ▼                    │ │          Stream file               │
-│       [ Azure AI Search ]          │ │                ▼                   │
-│               │                    │ │       [ Azure Blob Storage ]       │
-│         Return facts               │ │                │                   │
-│               ▼                    │ │      Fire async event              │
-│       [ Azure Function ]           │ │                ▼                   │
-│               │                    │ │       [ Azure Function ]           │
-│      Augmented prompt              │ │       (Background Worker)          │
-│               ▼                    │ │                │                   │
-│       [ Azure OpenAI ]             │ │          Scan image                │
-│       (gpt-4o-mini)                │ │                ▼                   │
-│               │                    │ │       [ Azure AI Vision ]          │
-│               ▼                    │ │     (Moderation & Metadata)        │
-│       Natural Response             │ │                                    │
-└───────────────┬────────────────────┘ └────────────────┬───────────────────┘
-                │                                       |
-                └─────────────► [ WEBSITE UI ] ◄────────┘
-                           (Updates screen for guest)
+                        ┌───────────────────────────┐
+                        │    WEDDING WEBSITE UI     │
+                        │  (Azure Static Web Apps)  │
+                        └─────┬───────────────┬─────┘
+                              │               │
+   HTTP POST /ask-assistant   |               │   HTTP POST /upload-image
+    (Real-time JSON Chat)     │               │   (Binary Image Stream)
+                              ▼               ▼
+ ┌────────────────────────────────────┐ ┌────────────────────────────────────┐
+ │   1. CONVERSATIONAL MICROSERVICE   │ │    2. PHOTO PORTAL MICROSERVICE    │
+ │        (Azure Function App)        │ │        (Azure Function App)        │
+ ├────────────────────────────────────┤ ├────────────────────────────────────┤
+ │                                    │ │                                    │
+ │         [ Azure Function ]         │ │         [ Azure Function ]         │
+ │                 │                  │ │         (Ingest Gatekeeper)        │
+ │        Search query text           │ │                  │                 │
+ │                 ▼                  │ │            Stream file             │
+ │        [ Azure AI Search ]         │ │                  ▼                 │
+ │                 │                  │ │        [ Azure Blob Storage ]      │
+ │           Return facts             │ │                  │                 │
+ │                 ▼                  │ │         Fire async event           │
+ │         [ Azure Function ]         │ │                  ▼                 │
+ │                 │                  │ │         [ Azure Function ]         │
+ │         Augmented prompt           │ │         (Background Worker)        │
+ │                 ▼                  │ │                  │                 │
+ │         [ Azure OpenAI ]           │ │             Scan image             │
+ │          (gpt-4o-mini)             │ │                  ▼                 │
+ │                 │                  │ │        [ Azure AI Vision ]         │
+ │                 ▼                  │ │       (Moderation & Tags)          │
+ │          Natural Response          │ │                                    │
+ └─────────────────┬──────────────────┘ └──────────────────┬─────────────────┘
+                   │                                       │
+                   └───────────► [ WEBSITE UI ] ◄──────────┘
+                            (Updates guest screen)
 ```
 
 
