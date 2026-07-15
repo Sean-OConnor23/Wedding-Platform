@@ -8,6 +8,7 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 4. Azure Resource Groups
 
 ## Activity Log
-#### July 14, 2026
+### July 2026
+#### July 14
 - TEST
-- test
+- TEST
