@@ -35,7 +35,7 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
  │         Augmented prompt           │ │         (Background Worker)        │
  │                 ▼                  │ │                  │                 │
  │         [ Azure OpenAI ]           │ │             Scan image             │
- │          (gpt-4o-mini)             │ │                  ▼                 │
+ │          (gpt-5.4-mini)             │ │                  ▼                 │
  │                 │                  │ │        [ Azure AI Vision ]         │
  │                 ▼                  │ │       (Moderation & Tags)          │
  │          Natural Response          │ │                                    │
