@@ -76,7 +76,7 @@ def ask_assistant(req: func.HttpRequest) -> func.HttpResponse:
             max_completion_tokens=250 # Modern parameter supporting latest model snapshots
         )
 
-        ai_reply = response.choices.message.content
+        ai_reply = response.choices[0].message.content
 
         # Return the final response with tracing metadata
         return func.HttpResponse(
