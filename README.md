@@ -57,3 +57,7 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 ## To Do List:
 - Move keys/configurations from local.settings.json to Azure Configuration/Azure Key Vault
 - Asynchronous Photo Portal
+
+### General Knowledge Learned:
+1. RAG Architecture
+   - TEMP
