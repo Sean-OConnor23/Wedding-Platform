@@ -9,6 +9,6 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 
 ## Activity Log
 ### July 2026
-#### July 14
-- TEST
-- TEST
+  #### July 14
+  - TEST
+  - TEST
