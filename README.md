@@ -8,6 +8,7 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 4. Azure Resource Groups
 
 ## Architecture Visualization
+```
                         ┌───────────────────────────┐
                         │   WEDDING WEBSITE UI      │
                         │ (Azure Static Web Apps)   │
@@ -17,8 +18,8 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
        (Real-time JSON Chat)  │               │ (Binary Image Stream)
                               ▼               ▼
  ┌────────────────────────────────────┐ ┌────────────────────────────────────┐
- │  1. CONVERSATIONAL MICROSERVICE   │ │      2. PHOTO PORTAL MICROSERVICE    │
- │       (Azure Function App)         │ │         (Azure Function App)         │
+ │  1. CONVERSATIONAL MICROSERVICE   │ │      2. PHOTO PORTAL MICROSERVICE   │
+ │       (Azure Function App)         │ │         (Azure Function App)       │
  ├────────────────────────────────────┤ ├────────────────────────────────────┤
  │                                    │ │                                    │
  │       [ Azure Function ]           │ │       [ Azure Function ]           │
@@ -42,7 +43,7 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
                  │                                       
                  └───────────────► [ WEBSITE UI ] ◄──────┘
                             (Updates screen for guest)
-
+```
 
 ## Activity Log
 #### July 14
