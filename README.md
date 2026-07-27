@@ -5,7 +5,9 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 1. Azure AI Foundry
 2. Azure AI Search (Free Tier)
 3. Azure Functions (Serverless Microservices Compute)
-4. Azure Resource Groups
+4. Azure Blob Storage (Cloud File Storage Engine)
+5. Azure AI Vision (Multi-Modal Machine Learning)
+6. Azure Resource Groups
 
 ## Architecture Visualization
 ```
@@ -59,7 +61,7 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 
 ## To Do List:
 - Move keys/configurations from local.settings.json to Azure Configuration/Azure Key Vault
-- Asynchronous Photo Portal
+- Add content moderation when uploading images
 
 ### General Knowledge Learned:
 1. RAG Architecture (Retrieval-Augmented Generation)
@@ -68,3 +70,5 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
      1. R (Retrieval): System searches a database to find documents matching the user's question.
      2. A (Augmentation): The system appends those documents into the LLM's system prompt as a reference text block.
      3. G (Generation): The LLM reads the added text and generates a natural, factually accurate response.
+2. Azure Blob Storage
+   - BLOB --> Binary Large Object
