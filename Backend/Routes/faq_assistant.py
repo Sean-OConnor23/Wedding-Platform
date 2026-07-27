@@ -5,41 +5,55 @@ import os
 from openai import AzureOpenAI
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
+from Utils.config import settings
 
 assistant_bp = func.Blueprint()
-
-openai_client = AzureOpenAI(
-    azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT"),
-    api_key=os.environ.get("AZURE_OPENAI_KEY"),
-    api_version="2024-02-01" 
-)
-model_deployment = os.environ.get("AZURE_OPENAI_DEPLOYMENT")
-
-search_client = SearchClient(
-    endpoint=os.environ.get("AZURE_SEARCH_ENDPOINT"),
-    index_name="wedding-index",
-    credential=AzureKeyCredential(os.environ.get("AZURE_SEARCH_KEY"))
-)
 
 @assistant_bp.route(route="ask-assistant", methods=["POST"])
 def ask_assistant(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Processing a live grounded RAG query via blueprint.')
+    
+    # 1. FIXED: Extract variables inside the function scope when the API is actively called
+    openai_endpoint = settings.get("AZURE-OPENAI-ENDPOINT")
+    openai_key = settings.get("AZURE-OPENAI-KEY")
+    model_deployment = settings.get("AZURE-OPENAI-DEPLOYMENT")
+    
+    search_endpoint = settings.get("AZURE-SEARCH-ENDPOINT")
+    search_key = settings.get("AZURE-SEARCH-KEY")
+    search_index = "wedding-index"
+
+    # Pre-execution safety check to output descriptive error paths
+    if not openai_endpoint or not search_endpoint:
+        return func.HttpResponse(
+            json.dumps({
+                "error": "Configuration Loading Error",
+                "details": "The settings dictionary is empty. Double check your cloud AppConfig network configuration."
+            }),
+            status_code=500,
+            mimetype="application/json"
+        )
 
     try:
         req_body = req.get_json()
         guest_question = req_body.get('question')
-        
         if not guest_question:
             return func.HttpResponse(
-                json.dumps({"error": "Please provide a 'question' in the request body."}), 
+                json.dumps({"error": "Please provide a 'question' in the request body."}),
                 status_code=400,
                 mimetype="application/json"
             )
-        
+
+        # 2. FIXED: Initialize the Azure AI Search Client inside the runtime container
+        search_client = SearchClient(
+            endpoint=search_endpoint,
+            index_name=search_index,
+            credential=AzureKeyCredential(search_key)
+        )
+
         # STEP ONE: Query Azure AI Search to retrieve relevant context
         search_results = search_client.search(
             search_text=guest_question,
-            top=1 
+            top=1
         )
         
         retrieved_context = ""
@@ -57,6 +71,13 @@ def ask_assistant(req: func.HttpRequest) -> func.HttpResponse:
             f"--- CONTEXT TO USE ---\n{retrieved_context}"
         )
 
+        # 3. FIXED: Initialize the Azure OpenAI Client inside the runtime container
+        openai_client = AzureOpenAI(
+            azure_endpoint=openai_endpoint,
+            api_key=openai_key,
+            api_version="2024-02-01"
+        )
+
         # STEP THREE: Send the augmented prompt to the model deployment
         response = openai_client.chat.completions.create(
             model=model_deployment,
@@ -64,22 +85,27 @@ def ask_assistant(req: func.HttpRequest) -> func.HttpResponse:
                 {"role": "system", "instruction" if "o1" in model_deployment or "o3" in model_deployment else "content": system_instruction},
                 {"role": "user", "content": guest_question}
             ],
-            temperature=1 if "o1" in model_deployment or "o3" in model_deployment else 0.3, 
-            max_completion_tokens=250 
+            temperature=1 if "o1" in model_deployment or "o3" in model_deployment else 0.3,
+            max_completion_tokens=250
         )
-
+        
         ai_reply = response.choices[0].message.content
-
+        
         return func.HttpResponse(
             json.dumps({"reply": ai_reply, "context_used": retrieved_context}),
             status_code=200,
             mimetype="application/json"
         )
-
+        
     except Exception as e:
         logging.error(f"Blueprint RAG Process Failure: {str(e)}")
+        import traceback
         return func.HttpResponse(
-            json.dumps({"error": "Failed to generate a response from the AI backend.", "details": str(e)}), 
+            json.dumps({
+                "error": "Failed to generate a response from the AI backend.",
+                "details": str(e),
+                "traceback": traceback.format_exc()
+            }),
             status_code=500,
             mimetype="application/json"
         )
