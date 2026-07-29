@@ -1,6 +1,6 @@
 import azure.functions as func
 import logging
-import os
+from Utils.config import settings
 from azure.ai.vision.imageanalysis import ImageAnalysisClient
 from azure.ai.vision.imageanalysis.models import VisualFeatures
 from azure.core.credentials import AzureKeyCredential
@@ -8,26 +8,26 @@ from azure.core.credentials import AzureKeyCredential
 # Initialize the background blueprint worker router
 processor_bp = func.Blueprint()
 
-# Initialize the Azure AI Vision Client using your local settings variables
-vision_endpoint = os.environ.get("AZURE_VISION_ENDPOINT")
-vision_key = os.environ.get("AZURE_VISION_KEY")
-
-vision_client = ImageAnalysisClient(
-    endpoint=vision_endpoint,
-    credential=AzureKeyCredential(vision_key)
-)
-
 # This background worker uses a BlobTrigger. It automatically wakes up 
 # the second a new file appears inside the "wedding-photos" bucket container.
 @processor_bp.blob_trigger(
     arg_name="myblob", 
     path="wedding-photos/{name}", 
-    connection="AZURE_STORAGE_CONNECTION_STRING"
+    connection=settings.get("AZURE-STORAGE-CONNECTION-STRING")
 )
 def process_wedding_photo(myblob: func.InputStream):
     logging.info(f"⚡ ASYNC EVENT TRIGGERED: Processing background photo metadata for: {myblob.name}")
 
     try:
+
+        # Initialize the Azure AI Vision Client using your local settings variables
+        vision_endpoint = settings.get("AZURE-VISION-ENDPOINT")
+        vision_key = settings.get("AZURE-VISION-KEY")
+
+        vision_client = ImageAnalysisClient(
+            endpoint=vision_endpoint,
+            credential=AzureKeyCredential(vision_key)
+        )
         # 1. Read the raw image stream data directly from the storage bucket
         image_data = myblob.read()
 

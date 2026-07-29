@@ -1,22 +1,21 @@
 import azure.functions as func
 import logging
 import json
-import os
 import uuid
 from azure.storage.blob import BlobServiceClient
+from Utils.config import settings
 
 # Initialize the blueprint router instead of a full app
 portal_bp = func.Blueprint()
-
-# Initialize the Blob Service Client using your local settings variable
-storage_connection_string = os.environ.get("AZURE_STORAGE_CONNECTION_STRING")
-blob_service_client = BlobServiceClient.from_connection_string(storage_connection_string)
 
 @portal_bp.route(route="upload-image", methods=["POST"])
 def upload_image(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Processing an incoming guest photo upload stream via blueprint.")
 
     try:
+        # Initialize the Blob Service Client using your local settings variable
+        storage_connection_string = settings.get("AZURE-STORAGE-CONNECTION-STRING")
+        blob_service_client = BlobServiceClient.from_connection_string(storage_connection_string)
         # 1. Extract the raw image bytes from the request body stream
         image_bytes = req.get_body()
         
