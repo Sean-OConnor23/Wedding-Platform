@@ -8,6 +8,8 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 4. Azure Blob Storage (Cloud File Storage Engine)
 5. Azure AI Vision (Multi-Modal Machine Learning)
 6. Azure Resource Groups
+7. Azure Key Vault
+8. Azure App Configuration
 
 ## Architecture Visualization
 ```
@@ -49,8 +51,13 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 
 
 ## Activity Log
-#### July 26
+#### July 30
 - Temp
+  
+#### July 26
+- I used Azure Vision and Azure Blob Storage to create a backend that accepts .jpg images, uploads them to blob storage, and attaches tags to them. When the image us uploaded, a blob trigger processes the image and returns tags so that future work will be able to categorize these images. The intent of this work is so that the wedding party will be able to upload images from the reception, rehearsal dinner, ceremony, etc.
+- In addition, I broke the Azure Function endpoints into their own files using Azure Functions Blueprints. This helped achieve some separation of concerns which is critical when trying to achieve clean code.
+- Once I got this working utilizing keys in local.settings.json, I moved all of my api keys and connection strings into Azure Key Vault. I moved other configuration values to Azure App Configuration where there is also a reference to the aforementioned Azure Key Vault. Now that my backend has access to this Azure App Configuration, it will be simpler to put this website into production.  
 
 #### July 14
 - I setup the initial backend project structure. Within this, I have used Python Virtual Environment (.venv) alongside the Azure Functions Python V2 Programming Model. Currently, I utilize the local.settings.json file paired with a Python .gitignore to store app secrets.
@@ -60,8 +67,10 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 - Overall:  My Azure Functions app acts as the middleman between Azure AI Foundry and Azure Search. A user prompts a question which then gets sent to Azure Search. Azure Search uses vector indexing and information provided to return (to Azure Function App) information it deems relevant to the question. From there, this data is passed into Azure AI Foundry where a user-friendly response is generated and passed back to Azure Function for display to the user.
 
 ## To Do List:
-- Move keys/configurations from local.settings.json to Azure Configuration/Azure Key Vault
 - Add content moderation when uploading images
+- Add RSVP list somehow
+- Registry
+- Is there a better place to store the content that is used in RAG? (My wedding-faq.json file)
 
 ### General Knowledge Learned:
 1. RAG Architecture (Retrieval-Augmented Generation)
