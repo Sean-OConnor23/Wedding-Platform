@@ -76,7 +76,6 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 - Add RSVP list somehow
 - Registry
 - Separation of concerns in UI (MVVM)
-- switch to DefaultAzureCredential for everything instead of storing Azure keys in KeyVault
 
 ### General Knowledge Learned:
 1. RAG Architecture (Retrieval-Augmented Generation)
