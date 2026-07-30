@@ -75,7 +75,7 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 - Add content moderation when uploading images
 - Add RSVP list somehow
 - Registry
-- Is there a better place to store the content that is used in RAG? (My wedding-faq.json file)
+- Node.js front end
 
 ### General Knowledge Learned:
 1. RAG Architecture (Retrieval-Augmented Generation)
