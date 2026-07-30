@@ -1,10 +1,8 @@
-import os
 import logging
 import uuid
 from datetime import datetime, timezone
-from Utils.config import settings
+from Utils.config import settings, credential
 import azure.functions as func
-from azure.identity import DefaultAzureCredential
 from azure.cosmos import CosmosClient
 from azure.ai.vision.imageanalysis import ImageAnalysisClient
 from azure.ai.vision.imageanalysis.models import VisualFeatures
@@ -22,8 +20,6 @@ def photo_processor(myblob: func.InputStream):
     try:
         COSMOS_DB_ENDPOINT = settings.get("AZURE-COSMOSDB-ENDPOINT")
         VISION_ENDPOINT = settings.get("AZURE-VISION-ENDPOINT")
-
-        credential = DefaultAzureCredential()
 
         vision_client = ImageAnalysisClient(endpoint=VISION_ENDPOINT, credential=credential)
         cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=credential)

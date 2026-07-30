@@ -1,11 +1,9 @@
 import azure.functions as func
 import logging
 import json
-import os
 from openai import AzureOpenAI
-from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
-from Utils.config import settings
+from Utils.config import settings, credential, token
 
 assistant_bp = func.Blueprint()
 
@@ -13,16 +11,11 @@ assistant_bp = func.Blueprint()
 def ask_assistant(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Processing a live grounded RAG query via blueprint.')
     
-    # 1. FIXED: Extract variables inside the function scope when the API is actively called
     openai_endpoint = settings.get("AZURE-OPENAI-ENDPOINT")
-    openai_key = settings.get("AZURE-OPENAI-KEY")
-    model_deployment = settings.get("AZURE-OPENAI-DEPLOYMENT")
-    
+    model_deployment = settings.get("AZURE-OPENAI-DEPLOYMENT")    
     search_endpoint = settings.get("AZURE-SEARCH-ENDPOINT")
-    search_key = settings.get("AZURE-SEARCH-KEY")
-    search_index = "wedding-index"
+    search_index = settings.get("AZURE-SEARCH-INDEX")
 
-    # Pre-execution safety check to output descriptive error paths
     if not openai_endpoint or not search_endpoint:
         return func.HttpResponse(
             json.dumps({
@@ -42,15 +35,19 @@ def ask_assistant(req: func.HttpRequest) -> func.HttpResponse:
                 status_code=400,
                 mimetype="application/json"
             )
-
-        # 2. FIXED: Initialize the Azure AI Search Client inside the runtime container
+        
         search_client = SearchClient(
             endpoint=search_endpoint,
             index_name=search_index,
-            credential=AzureKeyCredential(search_key)
+            credential=credential
         )
 
-        # STEP ONE: Query Azure AI Search to retrieve relevant context
+        openai_client = AzureOpenAI(
+                    azure_endpoint=openai_endpoint,
+                    azure_ad_token_provider=token,
+                    api_version="2024-02-01"
+                )
+
         search_results = search_client.search(
             search_text=guest_question,
             top=1
@@ -70,13 +67,7 @@ def ask_assistant(req: func.HttpRequest) -> func.HttpResponse:
             "in the context, politely say that you do not have that specific information yet.\n\n"
             f"--- CONTEXT TO USE ---\n{retrieved_context}"
         )
-
-        # 3. FIXED: Initialize the Azure OpenAI Client inside the runtime container
-        openai_client = AzureOpenAI(
-            azure_endpoint=openai_endpoint,
-            api_key=openai_key,
-            api_version="2024-02-01"
-        )
+        
 
         # STEP THREE: Send the augmented prompt to the model deployment
         response = openai_client.chat.completions.create(

@@ -3,9 +3,8 @@ import logging
 import json
 import uuid
 from azure.storage.blob import BlobServiceClient
-from Utils.config import settings
+from Utils.config import settings, credential
 
-# Initialize the blueprint router instead of a full app
 portal_bp = func.Blueprint()
 
 @portal_bp.route(route="upload-image", methods=["POST"])
@@ -13,10 +12,7 @@ def upload_image(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Processing an incoming guest photo upload stream via blueprint.")
 
     try:
-        # Initialize the Blob Service Client using your local settings variable
-        storage_connection_string = settings.get("AZURE-STORAGE-CONNECTION-STRING")
-        blob_service_client = BlobServiceClient.from_connection_string(storage_connection_string)
-        # 1. Extract the raw image bytes from the request body stream
+        blob_service_client = BlobServiceClient(settings.get("AZURE-STORAGE-ENDPOINT"), credential=credential)
         image_bytes = req.get_body()
         
         if not image_bytes:
@@ -26,15 +22,12 @@ def upload_image(req: func.HttpRequest) -> func.HttpResponse:
                 mimetype="application/json"
             )
 
-        # 2. Dynamically generate a completely unique filename for the blob asset
         unique_filename = f"guest-photo-{uuid.uuid4()}.jpg"
 
-        # 3. Locate or build the target container bucket in your Azure Storage Account
         container_client = blob_service_client.get_container_client("wedding-photos")
         if not container_client.exists():
             container_client.create_container()
 
-        # 4. Stream the raw image bytes directly into the cloud storage bucket
         blob_client = container_client.get_blob_client(unique_filename)
         blob_client.upload_blob(image_bytes, overwrite=True)
 

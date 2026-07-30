@@ -1,10 +1,15 @@
 # Utils/config.py
 import os
-from azure.identity import DefaultAzureCredential
+from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from azure.appconfiguration.provider import load, AzureAppConfigurationKeyVaultOptions
 
 # Shared global dictionary placeholder
 settings = {}
+credential = DefaultAzureCredential()
+token = get_bearer_token_provider(
+    credential, 
+    "https://cognitiveservices.azure.com/.default"
+)
 
 def initialize_cloud_config():
     global settings
@@ -16,19 +21,14 @@ def initialize_cloud_config():
         return
         
     try:
-        credential = DefaultAzureCredential()
-        
-        # Wrap your credential inside the dedicated Key Vault Options object
         kv_options = AzureAppConfigurationKeyVaultOptions(credential=credential)
         
-        # Load your cloud configuration map and decrypt Key Vault links natively
         loaded_provider = load(
             endpoint=app_config_endpoint, 
             credential=credential,
             key_vault_options=kv_options
         )
         
-        # Save values to your global dictionary
         settings.update(loaded_provider)
         print("All cloud configurations and Key Vault credentials synced successfully.")
         
