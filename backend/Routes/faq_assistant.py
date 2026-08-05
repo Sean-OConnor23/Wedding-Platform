@@ -1,6 +1,6 @@
-import azure.functions as func
 import logging
 import json
+import azure.functions as func
 from openai import AzureOpenAI
 from azure.search.documents import SearchClient
 from Utils.config import settings, credential, token
