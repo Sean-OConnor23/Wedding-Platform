@@ -80,7 +80,6 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 - Add content moderation when uploading images
 - Add RSVP list somehow
 - Registry
-- Separation of concerns in UI (MVVM)
 
 ### General Knowledge Learned:
 1. RAG Architecture (Retrieval-Augmented Generation)
