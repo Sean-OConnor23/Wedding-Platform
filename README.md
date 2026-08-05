@@ -11,6 +11,7 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 7. Azure Key Vault
 8. Azure App Configuration
 9. Azure Cosmos DB
+10. Azure Event Grid
 
 ## Architecture Visualization
 ```
