@@ -53,6 +53,11 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 
 
 ## Activity Log
+#### August 5
+- I added in censoring photo uploads. When uploading a photo, AI Vision detects whether or not it contains elements that are not suitable to be displayed on the wedding website using tags such as gory, racy, etc. In addition, it searches for tags that are wedding related. If it passes, the tags are then written to my Azure Cosmos DB.
+- While AI Vision is executing, my frontend continuously polls an endpoint (check-status) that I created to determine whether or not the photo was accepted. Once the status returns, the user knows whether or not their image made it to the website.
+- If the image does not pass, I perform Data Sanitation by deleting it from my Blob Storage so I do not waste storage space in my resource.
+
 #### August 4
 - I broke out the UI into React Components and applied MVVM. This allows for a separation of concerns and creates less confusion as the code base scales.
 - I added in photo deletion work. It is an Event Grid trigger that deletes a photos tags from Azure Cosmos DB whenever the photo itself is deleted from Azure Blob Storage. This is essential because it removes having to manually delete these entries whenever we are cleaning out photos from the photo gallery.
