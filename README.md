@@ -82,7 +82,6 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 - Overall:  My Azure Functions app acts as the middleman between Azure AI Foundry and Azure Search. A user prompts a question which then gets sent to Azure Search. Azure Search uses vector indexing and information provided to return (to Azure Function App) information it deems relevant to the question. From there, this data is passed into Azure AI Foundry where a user-friendly response is generated and passed back to Azure Function for display to the user.
 
 ## To Do List:
-- Add content moderation when uploading images
 - Add RSVP list somehow
 - Registry
 - Add prompt generation for chat bot so user isnt asking unrelevant questions and wasting tokens
