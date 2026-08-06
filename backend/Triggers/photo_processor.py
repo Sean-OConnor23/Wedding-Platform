@@ -1,6 +1,6 @@
 import logging
 import azure.functions as func
-from azure.identity import DefaultAzureCredential
+from azure.storage.blob import BlobServiceClient
 from azure.ai.vision.imageanalysis import ImageAnalysisClient
 from azure.ai.vision.imageanalysis.models import VisualFeatures
 from azure.cosmos import CosmosClient
@@ -60,6 +60,17 @@ def photo_processor(myblob: func.InputStream) -> None:
                 logging.info(f"Context Mismatch: Image '{raw_file_name}' is off-topic. Hiding from gallery.")
                 gallery_status = "REJECTED_OFF_TOPIC"
                 rejection_reason = "This gallery is exclusively for wedding moments! It looks like this picture is a bit off-topic."
+        if gallery_status != "APPROVED":
+            logging.info(f"🧼 Sanitizing storage: Deleting rejected file '{raw_file_name}' from cloud container...")
+            try:
+                blob_service_client = BlobServiceClient(account_url=settings.get("AZURE-STORAGE-ENDPOINT"), credential=credential)
+                blob_client = blob_service_client.get_blob_client(container="wedding-photos", blob=raw_file_name)
+                
+                # Delete the raw binary file out of storage instantly
+                blob_client.delete_blob()
+                logging.info(f"Successfully deleted unapproved file binary: {raw_file_name}")
+            except Exception as blob_err:
+                logging.error(f"Failed to delete unapproved blob: {str(blob_err)}")
 
         cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=credential)
         container = cosmos_client.get_database_client(COSMOS_DATABASE_NAME).get_container_client(COSMOS_CONTAINER_NAME)
