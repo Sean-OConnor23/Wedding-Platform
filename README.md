@@ -11,6 +11,7 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 7. Azure Key Vault
 8. Azure App Configuration
 9. Azure Cosmos DB
+10. Azure Event Grid
 
 ## Architecture Visualization
 ```
@@ -79,7 +80,7 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 - Add content moderation when uploading images
 - Add RSVP list somehow
 - Registry
-- Separation of concerns in UI (MVVM)
+- Add prompt generation for chat bot so user isnt asking unrelevant questions and wasting tokens
 
 ### General Knowledge Learned:
 1. RAG Architecture (Retrieval-Augmented Generation)
