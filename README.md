@@ -53,6 +53,9 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 
 
 ## Activity Log
+#### August 6
+- I add guardrails for my frequently asked questions assistant. This way, a user can only inquire about things pertaining to the wedding event. This prevents someone from asking irrelevant questions such as "What is 2 times 2?". In addition, I added this search prompt to my Azure App Configuration so I do not have to comb through code if I ever need to modify the search prompt.
+
 #### August 5
 - I added in censoring photo uploads. When uploading a photo, AI Vision detects whether or not it contains elements that are not suitable to be displayed on the wedding website using tags such as gory, racy, etc. In addition, it searches for tags that are wedding related. If it passes, the tags are then written to my Azure Cosmos DB.
 - While AI Vision is executing, my frontend continuously polls an endpoint (check-status) that I created to determine whether or not the photo was accepted. Once the status returns, the user knows whether or not their image made it to the website.
@@ -82,9 +85,9 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 - Overall:  My Azure Functions app acts as the middleman between Azure AI Foundry and Azure Search. A user prompts a question which then gets sent to Azure Search. Azure Search uses vector indexing and information provided to return (to Azure Function App) information it deems relevant to the question. From there, this data is passed into Azure AI Foundry where a user-friendly response is generated and passed back to Azure Function for display to the user.
 
 ## To Do List:
-- Add RSVP list somehow
+- Add RSVP list; Use google/facebook login for someone to access their RSVP
 - Registry
-- Add prompt generation for chat bot so user isnt asking unrelevant questions and wasting tokens
+- Photo gallery
 
 ### General Knowledge Learned:
 1. RAG Architecture (Retrieval-Augmented Generation)
