@@ -1,59 +1,83 @@
 import logging
-import uuid
-from datetime import datetime, timezone
-from Utils.config import settings, credential
 import azure.functions as func
-from azure.cosmos import CosmosClient
+from azure.identity import DefaultAzureCredential
 from azure.ai.vision.imageanalysis import ImageAnalysisClient
 from azure.ai.vision.imageanalysis.models import VisualFeatures
+from azure.cosmos import CosmosClient
+from datetime import datetime
+from Utils.config import settings, credential
 
-processor_bp = func.Blueprint()
+photo_processor_bp = func.Blueprint()
 
-@processor_bp.blob_trigger(
-    arg_name="myblob", 
-    path="wedding-photos/{name}", 
-    connection="AzureWebJobsStorage"
-)
-def photo_processor(myblob: func.InputStream):
-    logging.info(f"Triggered analysis pipeline for file: {myblob.name}")
+@photo_processor_bp.blob_trigger(arg_name="myblob", path="wedding-photos/{name}", connection="AzureWebJobsStorage")
+def photo_processor(myblob: func.InputStream) -> None:
+    # Safely isolate the raw matching file indices
+    raw_file_name = myblob.name.split("/")[-1]
+    file_id = raw_file_name.replace(".jpg", "").replace(".png", "")
+    logging.info(f"Background worker analyzing AI verification for ID: {file_id}")
+
+    VISION_ENDPOINT = settings.get("AZURE-VISION-ENDPOINT")
+    COSMOS_DB_ENDPOINT = settings.get("AZURE-COSMOSDB-ENDPOINT")
+    COSMOS_DATABASE_NAME = settings.get("AZURE-COSMOSDB-DB")
+    COSMOS_CONTAINER_NAME = settings.get("AZURE-COSMOSDB-CONTAINER")
+    
+    # Safely pull your keywords string cache out of system process memory variables
+    raw_keywords = settings.get("WEDDING_PHOTO_UPLOAD_CONTEXT")
+    WEDDING_KEYWORDS = {word.strip().lower() for word in raw_keywords.split(",")}
 
     try:
-        COSMOS_DB_ENDPOINT = settings.get("AZURE-COSMOSDB-ENDPOINT")
-        VISION_ENDPOINT = settings.get("AZURE-VISION-ENDPOINT")
-
-        vision_client = ImageAnalysisClient(endpoint=VISION_ENDPOINT, credential=credential)
-        cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=credential)
-        container = cosmos_client.get_database_client("WeddingPlatDb").get_container_client("PhotoMetadata")
-        # 1. Read raw image data directly from memory space
         image_bytes = myblob.read()
-        
-        # 2. FIX: Stream bytes directly to the AI Engine instead of sending a URL
-        analysis_result = vision_client.analyze(
-            image_data=image_bytes,
-            visual_features=[VisualFeatures.TAGS]
-        )
-        
-        # 3. Extract the vision tag outputs
-        ai_vision_tags = [tag['name'] for tag in analysis_result.tags['values']] if analysis_result.tags else []
-        logging.info(f"Extracted AI vision tags: {ai_vision_tags}")
 
-        # 4. Formulate the Cosmos DB transactional metadata document
-        today_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-        photo_document = {
-            "id": str(uuid.uuid4()),
-            "uploadDate": today_date,
-            "blobName": myblob.name,
-            "blobUri": myblob.uri,
-            "processedAt": datetime.now(timezone.utc).isoformat(),
+        # 1. Execute the compliant Azure AI Vision v4.0 computer vision tag generation sweep
+        with ImageAnalysisClient(endpoint=VISION_ENDPOINT, credential=credential) as vision_client:
+            analysis = vision_client.analyze(
+                image_data=image_bytes,
+                visual_features=[VisualFeatures.TAGS]
+            )
+
+        # 💡 THE NATIVE V4.0 FIX: Loop directly over analysis.tags.list to pull clean string tags
+        extracted_tags = [tag.name.lower() for tag in analysis.tags.list]
+        logging.info(f"AI Vision v4.0 parsed tags for {file_id}: {extracted_tags}")
+
+        gallery_status = "APPROVED"
+        rejection_reason = ""
+
+        # 2. CONTENT MODERATION CHECK (Censorship Perimeter)
+        CENSORED_KEYWORDS = {"adult", "nudity", "porn", "racy", "violence", "gore", "nsfw", "blood"}
+        has_safety_violation = any(flag in CENSORED_KEYWORDS for flag in extracted_tags)
+
+        if has_safety_violation:
+            logging.warning(f"🚨 Censorship Event: Inappropriate content blocked in blob {raw_file_name}.")
+            gallery_status = "REJECTED_CENSORED"
+            rejection_reason = "Inappropriate content detected. This file cannot be shared."
+
+        # 3. WEDDING CONTEXT EVALUATION (Only evaluates if the image passed safety filters)
+        if gallery_status == "APPROVED":
+            has_wedding_context = any(tag in WEDDING_KEYWORDS for tag in extracted_tags)
+            
+            if not has_wedding_context:
+                logging.info(f"⚠️ Context Mismatch: Image '{raw_file_name}' is off-topic. Hiding from gallery.")
+                gallery_status = "REJECTED_OFF_TOPIC"
+                rejection_reason = "This gallery is exclusively for wedding moments! It looks like this picture is a bit off-topic."
+
+        # 4. Commit the synchronized transaction data straight to Cosmos DB
+        cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=credential)
+        container = cosmos_client.get_database_client(COSMOS_DATABASE_NAME).get_container_client(COSMOS_CONTAINER_NAME)
+
+        metadata_document = {
+            "id": file_id, # Maps identically to your frontend status check routing query parameter
+            "blobName": raw_file_name,
+            "blobUri": f"https://windows.net{raw_file_name}",
+            "uploadDate": datetime.utcnow().strftime("%Y-%m-%d"),
+            "status": gallery_status,
+            "rejectionReason": rejection_reason,
             "aiAnalysis": {
-                "tags": ai_vision_tags
-            },
-            "status": "PROCESSED"
+                "tags": extracted_tags
+            }
         }
 
-        container.upsert_item(body=photo_document)
-        logging.info(f"Transaction completed. Metadata logged to database container.")
+        container.upsert_item(body=metadata_document)
+        logging.info(f"Background database write sync lifecycle complete. Status applied: {gallery_status}")
 
-    except Exception as pipeline_err:
-        logging.error(f"Execution pipeline interrupted: {str(pipeline_err)}")
-        raise pipeline_err
+    except Exception as e:
+        logging.error(f"Background worker processing cycle aborted: {str(e)}")

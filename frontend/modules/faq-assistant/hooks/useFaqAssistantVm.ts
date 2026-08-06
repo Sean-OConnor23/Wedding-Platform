@@ -32,7 +32,8 @@ export function useFaqViewModel() {
       });
       
       const data = await res.json();
-      setMessages((prev) => Object.freeze([...prev, { id: Date.now().toString(), sender: "assistant", text: data.answer }]));
+      const record = Array.isArray(data) ? data[0] : data;
+      setMessages((prev) => Object.freeze([...prev, { id: Date.now().toString(), sender: "assistant", text: record.answer }]));
     } catch {
       setMessages((prev) => Object.freeze([...prev, { id: Date.now().toString(), sender: "system", text: "System error processing message." }]));
     }
