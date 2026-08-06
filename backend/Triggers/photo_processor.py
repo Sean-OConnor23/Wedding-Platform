@@ -11,7 +11,7 @@ photo_processor_bp = func.Blueprint()
 
 @photo_processor_bp.blob_trigger(arg_name="myblob", path="wedding-photos/{name}", connection="AzureWebJobsStorage")
 def photo_processor(myblob: func.InputStream) -> None:
-    # Safely isolate the raw matching file indices
+    
     raw_file_name = myblob.name.split("/")[-1]
     file_id = raw_file_name.replace(".jpg", "").replace(".png", "")
     logging.info(f"Background worker analyzing AI verification for ID: {file_id}")
@@ -21,46 +21,46 @@ def photo_processor(myblob: func.InputStream) -> None:
     COSMOS_DATABASE_NAME = settings.get("AZURE-COSMOSDB-DB")
     COSMOS_CONTAINER_NAME = settings.get("AZURE-COSMOSDB-CONTAINER")
     
-    # Safely pull your keywords string cache out of system process memory variables
-    raw_keywords = settings.get("WEDDING_PHOTO_UPLOAD_CONTEXT")
-    WEDDING_KEYWORDS = {word.strip().lower() for word in raw_keywords.split(",")}
+   
+    raw_wedding_keywords = settings.get("WEDDING_PHOTO_UPLOAD_CONTEXT")
+    WEDDING_KEYWORDS = {word.strip().lower() for word in raw_wedding_keywords.split(",")}
+
+    raw_censored_keywords = settings.get("WEDDING_CENSORED_CONTEXT")
+    CENSORED_KEYWORDS = {word.strip().lower() for word in raw_censored_keywords.split(",")}
 
     try:
         image_bytes = myblob.read()
 
-        # 1. Execute the compliant Azure AI Vision v4.0 computer vision tag generation sweep
+        
         with ImageAnalysisClient(endpoint=VISION_ENDPOINT, credential=credential) as vision_client:
             analysis = vision_client.analyze(
                 image_data=image_bytes,
                 visual_features=[VisualFeatures.TAGS]
             )
 
-        # 💡 THE NATIVE V4.0 FIX: Loop directly over analysis.tags.list to pull clean string tags
         extracted_tags = [tag.name.lower() for tag in analysis.tags.list]
         logging.info(f"AI Vision v4.0 parsed tags for {file_id}: {extracted_tags}")
 
         gallery_status = "APPROVED"
         rejection_reason = ""
 
-        # 2. CONTENT MODERATION CHECK (Censorship Perimeter)
-        CENSORED_KEYWORDS = {"adult", "nudity", "porn", "racy", "violence", "gore", "nsfw", "blood"}
+        raw_censored_keywords = settings.get("WEDDING_CENSORED_CONTEXT")
+        CENSORED_KEYWORDS = {word.strip().lower() for word in raw_censored_keywords.split(",")}
         has_safety_violation = any(flag in CENSORED_KEYWORDS for flag in extracted_tags)
 
         if has_safety_violation:
-            logging.warning(f"🚨 Censorship Event: Inappropriate content blocked in blob {raw_file_name}.")
+            logging.warning(f"Censorship Event: Inappropriate content blocked in blob {raw_file_name}.")
             gallery_status = "REJECTED_CENSORED"
             rejection_reason = "Inappropriate content detected. This file cannot be shared."
 
-        # 3. WEDDING CONTEXT EVALUATION (Only evaluates if the image passed safety filters)
         if gallery_status == "APPROVED":
             has_wedding_context = any(tag in WEDDING_KEYWORDS for tag in extracted_tags)
             
             if not has_wedding_context:
-                logging.info(f"⚠️ Context Mismatch: Image '{raw_file_name}' is off-topic. Hiding from gallery.")
+                logging.info(f"Context Mismatch: Image '{raw_file_name}' is off-topic. Hiding from gallery.")
                 gallery_status = "REJECTED_OFF_TOPIC"
                 rejection_reason = "This gallery is exclusively for wedding moments! It looks like this picture is a bit off-topic."
 
-        # 4. Commit the synchronized transaction data straight to Cosmos DB
         cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=credential)
         container = cosmos_client.get_database_client(COSMOS_DATABASE_NAME).get_container_client(COSMOS_CONTAINER_NAME)
 
