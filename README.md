@@ -96,6 +96,7 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 - Could I make images shareable? Also, can I have a trigger for when new images get uploaded it auto-refreshes?
 - Also, look at what it would take to get this website deployed live
 - Probably need to look into acknowledging cookies.
+- For the wedding registry, is there a way to auto-search for coupons, sales, etc. so the guest can find the desired product at the lowest price?
 
 ### General Knowledge Learned:
 1. RAG Architecture (Retrieval-Augmented Generation)
