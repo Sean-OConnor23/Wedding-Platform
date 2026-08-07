@@ -53,6 +53,11 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 
 
 ## Activity Log
+#### August 7
+- I have added in a RSVP page that uses Google and Facebook OAuth to grab the users email. With this email, we query our database to find the corresponding rsvp to display. The user inputs their details and it writes back out to the database so that if the user were to access the database again it would produce the previously chosen selections.
+- I had to add the google and facebook secrets to KeyVault and reference them in App Configuration.
+- I also used NextAuth, which I am still not super familiar with, so I should get more up to speed.
+- Afterwards, I create a photo gallery section to produce the images that successfully made it into the Azure Blob Storage. Then, I made them clickable to show an enlarged version. Dealing with images during development is tricky; therefore, I will have to keep an eye on this aspect of the design. 
 #### August 6
 - I add guardrails for my frequently asked questions assistant. This way, a user can only inquire about things pertaining to the wedding event. This prevents someone from asking irrelevant questions such as "What is 2 times 2?". In addition, I added this search prompt to my Azure App Configuration so I do not have to comb through code if I ever need to modify the search prompt.
 
@@ -85,9 +90,9 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 - Overall:  My Azure Functions app acts as the middleman between Azure AI Foundry and Azure Search. A user prompts a question which then gets sent to Azure Search. Azure Search uses vector indexing and information provided to return (to Azure Function App) information it deems relevant to the question. From there, this data is passed into Azure AI Foundry where a user-friendly response is generated and passed back to Azure Function for display to the user.
 
 ## To Do List:
-- Add RSVP list; Use google/facebook login for someone to access their RSVP
 - Registry
-- Photo gallery
+- Separate the UI into separate components using a hamburger menu to navigate.
+- Look at making a global for pulling in Cosmos DB. Looks like it is being referenced in multiple backend files. 
 
 ### General Knowledge Learned:
 1. RAG Architecture (Retrieval-Augmented Generation)
