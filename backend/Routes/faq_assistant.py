@@ -16,6 +16,8 @@ def ask_assistant(req: func.HttpRequest) -> func.HttpResponse:
     search_endpoint = settings.get("AZURE-SEARCH-ENDPOINT")
     search_index = settings.get("AZURE-SEARCH-INDEX")
 
+    system_prompt = settings.get("WEDDING-FAQ-CONTEXT")
+
     if not openai_endpoint or not search_endpoint:
         return func.HttpResponse(
             json.dumps({
@@ -50,7 +52,7 @@ def ask_assistant(req: func.HttpRequest) -> func.HttpResponse:
 
         search_results = search_client.search(
             search_text=guest_question,
-            top=1
+            top=3
         )
         
         retrieved_context = ""
@@ -61,12 +63,8 @@ def ask_assistant(req: func.HttpRequest) -> func.HttpResponse:
             retrieved_context = "No specific wedding documents found matching this query."
 
         # STEP TWO: Inject context into the LLM system prompt
-        system_instruction = (
-            "You are an enthusiastic AI wedding assistant. Answer the guest's question "
-            "using ONLY the factual Context provided below. If the answer cannot be found "
-            "in the context, politely say that you do not have that specific information yet.\n\n"
-            f"--- CONTEXT TO USE ---\n{retrieved_context}"
-        )
+        system_instruction = f"{system_prompt}--- CONTEXT TO USE ---\n{retrieved_context}"
+        
         
 
         # STEP THREE: Send the augmented prompt to the model deployment

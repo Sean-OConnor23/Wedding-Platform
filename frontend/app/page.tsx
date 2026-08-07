@@ -1,6 +1,7 @@
 import React from "react";
 import { FaqAssistantView } from "@/modules/faq-assistant/views/FaqAssistantView";
 import { UploadImageView } from "@/modules/image-uploader/views/UploadImageView";
+import { RsvpView } from "@/modules/rsvp/views/RsvpView";
 
 export default function HomeRouterPage() {
   return (
@@ -10,9 +11,10 @@ export default function HomeRouterPage() {
         {/* Core Header Layout */}
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-serif text-stone-700">💍 Our Wedding Platform</h1>
-          <p className="text-stone-500">Powered by a Zero-Secret Python AI Backend</p>
+          <p className="text-stone-500">Powered by a Zero-Secret Python AI Backend TEST</p>
         </div>
 
+        <RsvpView />
         <UploadImageView />
         <FaqAssistantView/>
 

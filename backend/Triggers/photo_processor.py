@@ -61,7 +61,7 @@ def photo_processor(myblob: func.InputStream) -> None:
                 gallery_status = "REJECTED_OFF_TOPIC"
                 rejection_reason = "This gallery is exclusively for wedding moments! It looks like this picture is a bit off-topic."
         if gallery_status != "APPROVED":
-            logging.info(f"🧼 Sanitizing storage: Deleting rejected file '{raw_file_name}' from cloud container...")
+            logging.info(f"Sanitizing storage: Deleting rejected file '{raw_file_name}' from cloud container...")
             try:
                 blob_service_client = BlobServiceClient(account_url=settings.get("AZURE-STORAGE-ENDPOINT"), credential=credential)
                 blob_client = blob_service_client.get_blob_client(container="wedding-photos", blob=raw_file_name)
@@ -79,7 +79,7 @@ def photo_processor(myblob: func.InputStream) -> None:
             "id": file_id, # Maps identically to your frontend status check routing query parameter
             "blobName": raw_file_name,
             "blobUri": f"https://windows.net{raw_file_name}",
-            "uploadDate": datetime.utcnow().strftime("%Y-%m-%d"),
+            "uploadDate": datetime.strftime("%Y-%m-%d"),
             "status": gallery_status,
             "rejectionReason": rejection_reason,
             "aiAnalysis": {
