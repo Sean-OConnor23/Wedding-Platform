@@ -93,8 +93,9 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 - Registry
 - Separate the UI into separate components using a hamburger menu to navigate. Also look into maybe some global styling to make the tsx files look less complex
 - Look at making a global for pulling in Cosmos DB. Looks like it is being referenced in multiple backend files.
-- Could I make images shareable?
+- Could I make images shareable? Also, can I have a trigger for when new images get uploaded it auto-refreshes?
 - Also, look at what it would take to get this website deployed live
+- Probably need to look into acknowledging cookies.
 
 ### General Knowledge Learned:
 1. RAG Architecture (Retrieval-Augmented Generation)
