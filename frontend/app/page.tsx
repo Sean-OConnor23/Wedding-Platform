@@ -2,6 +2,8 @@ import React from "react";
 import { FaqAssistantView } from "@/modules/faq-assistant/views/FaqAssistantView";
 import { UploadImageView } from "@/modules/image-uploader/views/UploadImageView";
 import { RsvpView } from "@/modules/rsvp/views/RsvpView";
+import { GalleryView } from "@/modules/gallery/views/GalleryView";
+
 
 export default function HomeRouterPage() {
   return (
@@ -17,6 +19,7 @@ export default function HomeRouterPage() {
         <RsvpView />
         <UploadImageView />
         <FaqAssistantView/>
+        <GalleryView/>
 
       </div>
     </main>

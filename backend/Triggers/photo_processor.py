@@ -79,7 +79,7 @@ def photo_processor(myblob: func.InputStream) -> None:
             "id": file_id, # Maps identically to your frontend status check routing query parameter
             "blobName": raw_file_name,
             "blobUri": f"https://windows.net{raw_file_name}",
-            "uploadDate": datetime.strftime("%Y-%m-%d"),
+            "uploadDate": datetime.utcnow().strftime("%Y-%m-%d"),
             "status": gallery_status,
             "rejectionReason": rejection_reason,
             "aiAnalysis": {
