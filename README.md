@@ -91,8 +91,12 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 
 ## To Do List:
 - Registry
-- Separate the UI into separate components using a hamburger menu to navigate.
-- Look at making a global for pulling in Cosmos DB. Looks like it is being referenced in multiple backend files. 
+- Separate the UI into separate components using a hamburger menu to navigate. Also look into maybe some global styling to make the tsx files look less complex
+- Look at making a global for pulling in Cosmos DB. Looks like it is being referenced in multiple backend files.
+- Could I make images shareable? Also, can I have a trigger for when new images get uploaded it auto-refreshes?
+- Also, look at what it would take to get this website deployed live
+- Probably need to look into acknowledging cookies.
+- For the wedding registry, is there a way to auto-search for coupons, sales, etc. so the guest can find the desired product at the lowest price?
 
 ### General Knowledge Learned:
 1. RAG Architecture (Retrieval-Augmented Generation)
