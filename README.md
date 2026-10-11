@@ -53,6 +53,9 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 
 
 ## Activity Log
+#### October 11
+- I have reorganized the UI to be more fluent. I have tried to pull the majority of the styling out into the global.css file to promote consistency in the user interface. In addition, I created a Button component to ensure consistency of all Buttons across the web app.
+- 
 #### August 7
 - I have added in a RSVP page that uses Google and Facebook OAuth to grab the users email. With this email, we query our database to find the corresponding rsvp to display. The user inputs their details and it writes back out to the database so that if the user were to access the database again it would produce the previously chosen selections.
 - I had to add the google and facebook secrets to KeyVault and reference them in App Configuration.
