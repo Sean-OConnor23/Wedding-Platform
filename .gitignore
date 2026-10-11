@@ -223,3 +223,31 @@ __marimo__/
 #Custom Files/Folders
 StartServer.ps1
 
+# ==========================================
+# TERRAFORM INFRASTRUCTURE EXCLUSIONS
+# ==========================================
+
+# Block the local binary caching directories (contains architecture providers)
+.terraform/
+
+# Block all active planning state and backup files (CRITICAL: Contains your secret text strings!)
+*.tfstate
+*.tfstate.*
+
+# Block crash log memory dumps and execution logs
+crash.log
+*.log
+
+# Block custom variables file assets (contains manual key input records)
+*.tfvars
+*.tfvars.json
+
+# Block any overrides or localized development modifications
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Block temporary plan file dry-run files
+.terraform.lock.hcl
+

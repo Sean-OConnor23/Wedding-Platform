@@ -39,9 +39,7 @@ export const FaqAssistantView: React.FC = () => {
           className="wd-input-text" 
         />
     
-        <Button type="submit" variant="primary">
-          Ask
-        </Button>
+        <Button type="submit" variant="primary">Ask</Button>
       </form>
     </section>
   );

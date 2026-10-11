@@ -1,0 +1,61 @@
+name: Production Multi-Service Deployment CI/CD
+
+on:
+  push:
+    branches:
+      - main 
+  workflow_dispatch:
+
+jobs:
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    name: Build & Deploy Next.js Frontend
+    steps:
+      - name: Checkout Source Code Repository
+        uses: actions/checkout@v4
+
+      - name: Install Node.js Execution Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './frontend/package-lock.json'
+
+      - name: Build Web Application Assets
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+
+      - name: Push Static Assets to Azure Edge Slots
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "./frontend"
+          output_location: ".next"
+  deploy-backend:
+    runs-on: ubuntu-latest
+    name: Deploy Python Function Server
+    steps:
+      - name: Checkout Source Code Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python Environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Runtime Dependency Layouts
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt --target=".python_packages/lib/site-packages"
+
+      - name: Publish Functions to Azure Runtime Nodes
+        uses: Azure/functions-action@v1
+        with:
+          app-name: 'wedding-api-prod-server' # Matches your exact Terraform name
+          package: './backend'
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
