@@ -1,15 +1,399 @@
+/* app/globals.css - PART 1 of 2 */
 @import "tailwindcss";
 
-/* Universal base design layer configuration resets for Tailwind v4 */
-@theme {
-  /* You can add custom wedding design token fonts, colors, or transitions here later if needed */
-}
-
 @layer base {
+  :root {
+    /* Premium Luxury Palette Tokens */
+    --brand-cream: #faf8f5;
+    --brand-sage: #4e594f;
+    --brand-amber: #8c6239;
+    --shadow-ambient: 0 4px 20px -2px rgba(45, 42, 38, 0.02), 0 12px 32px -4px rgba(45, 42, 38, 0.04);
+    --shadow-tactile: 0 2px 8px -1px rgba(140, 98, 57, 0.08), 0 4px 16px -2px rgba(140, 98, 57, 0.04);
+  }
+  
   body {
-    background-color: var(--color-stone-50);
-    color: var(--color-stone-800);
+    background-color: var(--brand-cream);
+    color: #44403c;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
   }
 }
+
+@layer components {
+  /* ==========================================================================
+     A. VISUAL DEPTH & LAYERED SURFACE SURFACES
+     ========================================================================== */
+  .wd-page-viewport {
+    @apply min-h-screen py-16 px-4 sm:px-6 lg:px-8 bg-linear-to-b from-[#faf8f5] to-[#f4f0ea] transition-colors duration-300;
+  }
+
+  .wd-content-constrain-box {
+    @apply max-w-3xl mx-auto space-y-8;
+  }
+
+  .wd-card-base {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    box-shadow: var(--shadow-ambient);
+    @apply p-8 rounded-3xl border border-stone-200/40 space-y-5 transition-all duration-300;
+  }
+  
+  .wd-card-gallery {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    box-shadow: var(--shadow-ambient);
+    @apply p-8 rounded-3xl border border-stone-200/40 space-y-8 transition-all duration-300;
+  }
+
+  /* ==========================================================================
+     B. SOPHISTICATED EDITORIAL TYPOGRAPHY
+     ========================================================================== */
+  .wd-main-header {
+    @apply text-center space-y-3 mb-6;
+  }
+
+  .wd-title-sans {
+    @apply text-lg font-semibold text-stone-800 tracking-tight;
+  }
+  
+  .wd-title-serif {
+    @apply text-2xl font-serif text-stone-800 tracking-tight font-normal;
+  }
+  
+  .wd-subtitle {
+    @apply text-xs text-stone-400 font-medium tracking-wide uppercase;
+  }
+
+  /* ==========================================================================
+     C. PREMIUM TAB WORKSPACE SCROLLER
+     ========================================================================== */
+  .wd-navbar-scroller-row {
+    /* Enforces a full width layout block aligned cleanly to the center axis */
+    @apply w-full flex justify-center border-b border-stone-200/80 mb-2;
+  }
+
+  .wd-navbar-centered-container {
+    /* Uses Flexbox to align tabs perfectly below your main title text */
+    @apply flex overflow-x-auto gap-4 scrollbar-none justify-center items-center;
+  }
+
+  .wd-nav-tab-trigger {
+    @apply pb-4 px-4 text-xs font-semibold uppercase tracking-widest border-b-2 transition-all duration-300 cursor-pointer text-stone-400 hover:text-stone-800;
+  }
+
+  .wd-nav-tab-active {
+    border-color: var(--brand-amber);
+    color: var(--brand-amber) !important;
+  }
+
+  /* ==========================================================================
+     D. TACTILE INPUTS & ADAPTIVE FORM MATRIX
+     ========================================================================== */
+  .wd-form-stack {
+    @apply space-y-6;
+  }
+
+  .wd-field-group {
+    @apply space-y-2;
+  }
+
+  .wd-field-label {
+    @apply block text-[10px] font-bold text-stone-500 uppercase tracking-widest;
+  }
+
+  .wd-input-text {
+    @apply flex-1 px-4 py-3 border border-stone-200 rounded-xl bg-white/70 shadow-xs transition-all duration-200 outline-none focus:border-stone-400 focus:ring-4 focus:ring-stone-400/5;
+  }
+
+  .wd-input-field-compact {
+    @apply w-full px-4 py-3 text-xs border border-stone-200 rounded-xl bg-white/70 text-stone-800 shadow-xs outline-none transition-all duration-200 focus:border-stone-400 focus:ring-4 focus:ring-stone-400/5;
+  }
+
+  .wd-select-field {
+    @apply w-full px-4 py-3 text-xs border border-stone-200 rounded-xl bg-white/70 text-stone-800 shadow-xs outline-none transition-all duration-200 focus:border-stone-400 focus:ring-4 focus:ring-stone-400/5 cursor-pointer;
+  }
+
+  .wd-textarea-field {
+    @apply w-full px-4 py-3 text-xs border border-stone-200 rounded-xl bg-white/70 text-stone-800 shadow-xs outline-none transition-all duration-200 focus:border-stone-400 focus:ring-4 focus:ring-stone-400/5 resize-none min-h-[80px];
+  }
+
+  /* ==========================================================================
+     E. PREMIUM BUTTON SYSTEM & INTERACTION STATES
+     ========================================================================== */
+  .wd-btn-submit {
+    background: var(--brand-amber);
+    @apply text-white px-6 py-2.5 rounded-xl text-xs font-semibold tracking-wider uppercase transition-all duration-200 shadow-xs hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer;
+  }
+
+  .wd-btn-block-submit {
+    @apply w-full py-3.5 bg-stone-800 hover:bg-stone-900 text-white rounded-xl text-xs font-semibold tracking-widest uppercase transition-all duration-200 shadow-sm hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-40 disabled:pointer-events-none cursor-pointer;
+  }
+
+  .wd-filter-btn-base {
+    @apply px-4 py-1.5 rounded-full text-[11px] font-semibold tracking-wide border transition-all duration-200 cursor-pointer;
+  }
+  
+  .wd-filter-btn-active {
+    @apply bg-stone-800 border-stone-800 text-white shadow-xs;
+  }
+  
+  .wd-filter-btn-inactive {
+    @apply bg-white border-stone-200 text-stone-600 hover:border-stone-400;
+  }
+/* app/globals.css - PART 2 of 2 */
+
+  /* ==========================================================================
+     F. AI BOT FLUID MESSAGING NETWORKS
+     ========================================================================== */
+  .wd-chat-history-area {
+    @apply flex-1 overflow-y-auto space-y-4 p-4 bg-stone-50/60 rounded-2xl mb-4 border border-stone-200/40 shadow-inner min-h-[280px];
+  }
+
+  .wd-bubble-base {
+  /* 1. Standard Tailwind rules */
+  @apply max-w-[70%] rounded-2xl px-4 py-3 text-sm;
+  
+  /* 2. Custom native fallback to fix Tailwind v4 compilation errors */
+  animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.015);
+}
+  
+  .wd-bubble-guest {
+    background: var(--brand-amber);
+    @apply text-white rounded-br-none;
+  }
+  
+  .wd-bubble-system {
+    @apply bg-rose-50/80 text-rose-600 border border-rose-100 rounded-bl-none text-xs;
+  }
+  
+  .wd-bubble-ai {
+    @apply bg-white text-stone-800 border border-stone-200/80 rounded-bl-none leading-relaxed;
+  }
+  
+  .wd-layout-flex-gapbox {
+    @apply flex gap-3 items-center;
+  }
+
+  /* ==========================================================================
+     G. HIGH-END MEDIA MASONRY STREAM & HUD STYLING
+     ========================================================================== */
+  .wd-photo-matrix-grid {
+    @apply columns-1 sm:columns-2 md:columns-3 gap-5 space-y-5;
+  }
+
+  .wd-photo-item-card {
+    @apply break-inside-avoid relative overflow-hidden rounded-2xl border border-stone-200/30 bg-stone-100/40 shadow-xs transition-all duration-300 cursor-zoom-in;
+  }
+  .wd-photo-item-card:hover {
+    box-shadow: var(--shadow-tactile);
+    transform: scale(1.015) translateY(-2px);
+  }
+
+  .wd-photo-hud-overlay {
+    @apply absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-900/10 to-transparent opacity-0 transition-all duration-300 p-5 flex flex-col justify-end text-white;
+  }
+  .wd-photo-item-card:hover .wd-photo-hud-overlay {
+    @apply opacity-100;
+  }
+
+  .wd-lightbox-backdrop {
+    @apply fixed inset-0 z-50 flex flex-col items-center justify-center bg-stone-950/98 p-6 backdrop-blur-xl transition-all duration-300 cursor-zoom-out;
+  }
+  
+  .wd-lightbox-escape-btn {
+    @apply absolute top-6 right-6 text-stone-400 hover:text-white transition-colors duration-200 p-3 text-3xl font-light cursor-pointer;
+  }
+
+.wd-upload-zone {
+  border: 2px dashed #e2e8f0;
+  @apply rounded-2xl p-10 text-center bg-stone-50/40 transition-all duration-300 cursor-pointer flex flex-col items-center justify-center;
+}
+
+.wd-upload-zone:hover {
+  border-color: var(--brand-amber);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow-tactile);
+}
+
+  .wd-file-input {
+    @apply cursor-pointer text-xs text-stone-400 file:mr-5 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-stone-800 file:text-white hover:file:bg-stone-900 file:transition-all file:cursor-pointer;
+  }
+
+  /* ==========================================================================
+     H. VALUE METRIC DEALS & REGISTRY GRID MODULES
+     ========================================================================== */
+  .wd-registry-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-5;
+  }
+
+  .wd-registry-item-card {
+    @apply p-6 border border-stone-200/60 rounded-2xl bg-stone-50/50 flex flex-col justify-between space-y-5 transition-all duration-200;
+  }
+  .wd-registry-item-card:hover {
+    @apply border-stone-300 bg-white;
+    box-shadow: var(--shadow-ambient);
+  }
+
+  .wd-variant-badge {
+    @apply text-[10px] bg-stone-200/80 text-stone-700 px-2 py-0.5 rounded-md font-semibold tracking-wide uppercase;
+  }
+
+  .wd-price-box {
+    @apply p-4 rounded-xl bg-white border border-stone-200/80 space-y-3 shadow-xs;
+  }
+
+  .wd-deal-savings-banner {
+    @apply text-[11px] bg-emerald-50 border border-emerald-100/60 text-emerald-800 font-semibold py-2 px-3 rounded-lg text-center shadow-xs;
+  }
+
+  .wd-coupon-code-chip {
+    @apply bg-stone-100 border border-stone-200 font-mono px-1.5 py-0.5 rounded-md text-stone-800 font-bold text-[11px];
+  }
+
+  .wd-btn-action-outline {
+    @apply flex-1 text-center py-2.5 text-xs font-semibold border border-stone-200 rounded-xl bg-white text-stone-600 hover:text-stone-900 hover:border-stone-400 transition-all duration-200 cursor-pointer;
+  }
+
+  .wd-btn-action-solid {
+    @apply flex-1 text-center py-2.5 text-xs font-semibold rounded-xl bg-stone-800 text-white hover:bg-stone-900 transition-all duration-200 cursor-pointer;
+  }
+
+  /* ==========================================================================
+     I. RSVP PROVIDERS & EXPERIENCE FLOWS
+     ========================================================================== */
+  .wd-btn-oauth-google {
+    @apply px-6 py-3 border border-stone-200 rounded-xl text-stone-700 bg-white shadow-xs hover:border-stone-400 hover:shadow-xs transition-all duration-200 text-xs font-semibold tracking-wide flex items-center justify-center gap-2 cursor-pointer;
+  }
+
+  .wd-btn-oauth-facebook {
+    @apply px-6 py-3 rounded-xl text-white bg-[#1877F2] shadow-xs hover:bg-[#1466d6] transition-all duration-200 text-xs font-semibold tracking-wide flex items-center justify-center gap-2 cursor-pointer;
+  }
+
+  .wd-choice-matrix-grid {
+    @apply grid grid-cols-2 gap-4;
+  }
+
+  .wd-choice-btn-base {
+    @apply py-3.5 rounded-xl text-xs font-semibold border transition-all duration-200 tracking-wide cursor-pointer;
+  }
+
+  .wd-choice-accept-active {
+    @apply bg-emerald-50/80 border-emerald-500 text-emerald-800 shadow-xs font-bold;
+  }
+
+  .wd-choice-decline-active {
+    @apply bg-rose-50/80 border-rose-300 text-rose-800 shadow-xs font-bold;
+  }
+
+  .wd-choice-inactive {
+    @apply bg-white border-stone-200 text-stone-500 hover:border-stone-400 hover:text-stone-800;
+  }
+
+  .wd-banner-success {
+    @apply text-center text-xs font-semibold py-3 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-xs;
+  }
+
+  .wd-registry-header-stack {
+    @apply space-y-1;
+  }
+
+  .wd-item-info-stack {
+    @apply space-y-1;
+  }
+
+  .wd-item-meta-row {
+    @apply flex flex-wrap gap-2 items-center;
+  }
+
+  .wd-item-price-row {
+    @apply flex justify-between items-baseline text-xs;
+  }
+
+  .wd-deal-breakdown-box {
+    @apply space-y-2 pt-2 border-t border-dashed border-stone-100;
+  }
+
+  .wd-deal-comparison-row {
+    @apply flex justify-between items-baseline;
+  }
+
+  .wd-coupon-caption {
+    @apply text-[10px] text-stone-400 text-center;
+  }
+
+  .wd-upload-status-pulse {
+    @apply text-sm font-medium text-center text-stone-600 animate-pulse;
+  }
+
+  .wd-gallery-title-group {
+    @apply space-y-1;
+  }
+
+  .wd-gallery-toolbar-row {
+    @apply flex flex-wrap gap-1.5 pb-2;
+  }
+
+  .wd-photo-inner-image {
+    @apply w-full h-auto object-cover transition-transform duration-300 group-hover:scale-102;
+  }
+
+  .wd-photo-caption-text {
+    @apply text-[11px] text-stone-300 italic mt-0.5;
+  }
+
+  .wd-photo-tag-row {
+    @apply flex flex-wrap gap-1 mt-2;
+  }
+
+  .wd-photo-tag-pill-compact {
+    @apply text-[9px] bg-white/20 px-1.5 py-0.5 rounded-md backdrop-blur-xs;
+  }
+
+  .wd-lightbox-center-frame {
+    @apply relative max-w-4xl max-h-[85vh] flex flex-col items-center;
+  }
+
+  .wd-lightbox-image-box {
+    @apply max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl select-none;
+  }
+
+  .wd-lightbox-meta-card {
+    @apply mt-4 text-center max-w-xl text-stone-200 space-y-1 cursor-default;
+  }
+
+  .wd-lightbox-tag-row-centered {
+    @apply flex justify-center flex-wrap gap-1.5 pt-1;
+  }
+
+  .wd-lightbox-tag-pill-large {
+    @apply text-[10px] bg-white/10 px-2 py-0.5 rounded text-stone-300;
+  }
+
+ .wd-upload-space-wrapper {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    box-shadow: var(--shadow-ambient);
+    @apply p-8 rounded-3xl border border-stone-200/40 transition-all duration-300;
+
+    @apply space-y-4;
+  }
+}
+
+/* ==========================================================================
+   J. CORE MICRO-ANIMATION COMPILERS
+   ========================================================================== */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: slideUp 0.25s ease-out forwards;
+}
+  
+
+  
