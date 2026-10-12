@@ -9,7 +9,7 @@ export interface IChatMessage {
 }
 
 export function useFaqViewModel() {
-  const API_BASE = "http://localhost:7071/api";
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL  || "http://localhost:7071/api";
 
   const [messages, setMessages] = useState<readonly IChatMessage[]>([
     { id: "1", sender: "assistant", text: "Hi! Ask me anything about the timeline, dress code, or locations!" }
