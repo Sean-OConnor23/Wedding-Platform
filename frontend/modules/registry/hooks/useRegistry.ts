@@ -26,6 +26,8 @@ export function useRegistry() {
   const [inputStore, setInputStore] = useState<string>("");
   const [syncing, setSyncing] = useState<boolean>(false);
 
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL  || "http://localhost:7071/api";
+
   const fetchRegistry = () => {
     setLoading(true);
     fetch("http://localhost:7071/api/get-registry")
@@ -48,7 +50,7 @@ export function useRegistry() {
 
     setSyncing(true);
     try {
-      const res = await fetch("http://localhost:7071/api/sync-registry-link", {
+      const res = await fetch(`${API_BASE}/sync-registry-link`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: inputUrl, storeName: inputStore }),

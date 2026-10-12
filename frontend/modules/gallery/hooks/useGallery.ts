@@ -17,8 +17,10 @@ export function useGallery() {
   const [error, setError] = useState<string>("");
   const [activeTag, setActiveTag] = useState<string>("");
 
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL  || "http://localhost:7071/api";
+
   useEffect(() => {
-    fetch("http://localhost:7071/api/get-photos")
+    fetch(`${API_BASE}/get-photos`)
       .then((res) => {
         if (!res.ok) throw new Error("Could not pull gallery manifest payload.");
         return res.json();
