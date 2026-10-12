@@ -44,7 +44,7 @@ resource "azurerm_linux_function_app" "backend_api" {
       python_version = "3.11"
     }
     cors {
-      allowed_origins = ["*"] # Will restrict to your frontend domain post-deployment
+      allowed_origins = ["https://brave-desert-0c2c2030f.1.azurestaticapps.net"] # Will restrict to your frontend domain post-deployment
     }
   }
 
