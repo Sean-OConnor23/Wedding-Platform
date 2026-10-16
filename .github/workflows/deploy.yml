@@ -45,18 +45,25 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploy Python Function Server
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout Source Code Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python Environment
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - uses: azure/login@v3
+
+      - name: Az CLI Login via OIDC
+        uses: azure/login@v3
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      - uses: Azure/functions-action@v1
-        with:
-          app-name: 'wedding-api-prod-server'
-          package: './backend'
-          remote-build: true
+
+      # ⚠️ ZIP AND PUSH NATIVELY TO BYPASS THE ACTION BUG
+      - name: Zip and Deploy Backend to Flex Consumption
+        run: |
+          cd backend
+          zip -r ../deploy.zip .
+          az functionapp deployment source config-zip --name "wedding-api-prod-server" --resource-group "Wedding-Platform" --src "../deploy.zip"
 
