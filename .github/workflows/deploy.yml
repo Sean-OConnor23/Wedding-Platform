@@ -64,7 +64,9 @@ jobs:
           # 2. ─── USE THE CORRECT RELATIVE DIRECTORY PATH COMMAND FOR ZIP ───
           # This forces Linux to recursively capture all directories (Routes, Triggers, Utils) 
           # without using wildcard expansion bugs
-          zip -q -r ../deploy.zip .
+          zip -r ../deploy.zip .
+
+          unzip -l ../deploy.zip
 
       - name: Az CLI Login via OIDC
         uses: azure/login@v3
