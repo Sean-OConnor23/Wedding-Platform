@@ -58,12 +58,16 @@ resource "azurerm_role_assignment" "pipeline_contributor" {
 }
 
 # Create the Linux Consumption Plan (Serverless Billing Model)
-resource "azurerm_service_plan" "function_plan" {
-  name                = "wedding-function-plan"
+resource "azurerm_service_plan" "flex_function_plan" {
+  name                = "wedding-flex-function-plan" # New name forces fresh recreation
   resource_group_name = data.azurerm_resource_group.existing_rg.name
   location            = data.azurerm_resource_group.existing_rg.location
   os_type             = "Linux"
-  sku_name            = "Y1" # Free/Serverless consumption tier
+  sku_name            = "FC1" # Flex Consumption SKU
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_application_insights" "app_insights" {
@@ -73,41 +77,46 @@ resource "azurerm_application_insights" "app_insights" {
   application_type    = "web"
 }
 
-# Create the Live Python Function App Instance linked to your existing storage
-resource "azurerm_linux_function_app" "backend_api" {
-  name                = "wedding-api-prod-server" # Must be unique across all of Azure
+resource "azurerm_storage_container" "flex_deployment" {
+  name                  = "app-package-deployments"
+  container_access_type = "private"
+  storage_account_id    = data.azurerm_storage_account.existing_storage.id
+}
+
+
+# Create the Live Python Flex Consumption Function App Instance
+resource "azurerm_function_app_flex_consumption" "backend_api" {
+  name                = "wedding-api-prod-server"
   resource_group_name = data.azurerm_resource_group.existing_rg.name
   location            = data.azurerm_resource_group.existing_rg.location
+  service_plan_id     = azurerm_service_plan.flex_function_plan.id
 
-  storage_account_name       = data.azurerm_storage_account.existing_storage.name
-  storage_account_access_key = data.azurerm_storage_account.existing_storage.primary_access_key
-  service_plan_id            = azurerm_service_plan.function_plan.id
+  runtime_name    = "python"
+  runtime_version = "3.11"
 
-  site_config {
-    application_stack {
-      python_version = "3.11"
-    }
-  }
+  storage_container_type      = "blobContainer"
+  storage_authentication_type = "StorageAccountConnectionString"
+  storage_container_endpoint  = "${data.azurerm_storage_account.existing_storage.primary_blob_endpoint}${azurerm_storage_container.flex_deployment.name}"
+
+  storage_access_key          = data.azurerm_storage_account.existing_storage.primary_access_key
+
+  site_config {}
 
   identity {
     type = "SystemAssigned"
   }
 
-  # Terraform automatically pulls connection strings securely directly out of your data block
   app_settings = {
-    "FUNCTIONS_WORKER_RUNTIME"              = "python"
-    "AzureWebJobsStorage"                   = data.azurerm_storage_account.existing_storage.primary_connection_string
     "AzureWebJobsFeatureFlags"              = "EnableWorkerIndexing"
-    "SCM_DO_BUILD_DURING_DEPLOYMENT"        = "true"
-    "ENABLE_ORYX_BUILD"                     = "true"
     "AppConfig_Endpoint"                    = data.azurerm_app_configuration.existing_config.endpoint
     "APPINSIGHTS_INSTRUMENTATIONKEY"        = azurerm_application_insights.app_insights.instrumentation_key
     "APPLICATIONINSIGHTS_CONNECTION_STRING" = azurerm_application_insights.app_insights.connection_string
-
-    #Need to check to see if we actually need this or if we can just use the AzureWebJobsStorage connection string
-    "AZURE_STORAGE_CONNECTION_STRING" = data.azurerm_storage_account.existing_storage.primary_connection_string
+    "AZURE_STORAGE_CONNECTION_STRING"       = data.azurerm_storage_account.existing_storage.primary_connection_string
   }
 }
+
+
+
 
 # Provision the Azure Static Web App (Frontend Hosting)
 resource "azurerm_static_web_app" "frontend_ui" {
@@ -123,7 +132,27 @@ resource "azurerm_role_assignment" "appconfig_reader" {
   role_definition_name = "App Configuration Data Reader"
 
   # Clean standard syntax now that the cloud identity exists
-  principal_id = azurerm_linux_function_app.backend_api.identity[0].principal_id
+  principal_id = azurerm_function_app_flex_consumption.backend_api.identity[0].principal_id
+}
+
+resource "azurerm_role_assignment" "search_reader" {
+  # Replace with your actual search service resource ID if available via data block
+  scope                = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/Wedding-Platform/providers/Microsoft.Search/searchServices/search-wedding-platform-071127"
+  role_definition_name = "Search Index Data Reader"
+  principal_id         = azurerm_function_app_flex_consumption.backend_api.identity[0].principal_id
+}
+
+resource "azurerm_role_assignment" "openai_user" {
+  # Replace with your actual Cognitive Services/OpenAI account resource ID
+  scope                = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/Wedding-Platform/providers/Microsoft.CognitiveServices/accounts/OpenAI-Wedding-Platform-071127"
+  role_definition_name = "Cognitive Services OpenAI User"
+  principal_id         = azurerm_function_app_flex_consumption.backend_api.identity[0].principal_id
+}
+
+resource "azurerm_role_assignment" "vision_user" {
+  scope                = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/Wedding-Platform/providers/Microsoft.CognitiveServices/accounts/weddingplat-vision"
+  role_definition_name = "Cognitive Services User"
+  principal_id         = azurerm_function_app_flex_consumption.backend_api.identity[0].principal_id
 }
 
 # Output the SWA key directly to the terminal for your GitHub Secrets
