@@ -14,14 +14,14 @@ app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 
 # 6. Register routing blueprints
 app.register_blueprint(assistant_bp)
-app.register_blueprint(portal_bp)
-app.register_blueprint(status_bp)
-app.register_blueprint(rsvp_bp)
-app.register_blueprint(gallery_bp)
-app.register_blueprint(registry_bp)
-app.register_blueprint(cron_bp)
-app.register_blueprint(sync_link_bp)
+#app.register_blueprint(portal_bp)
+#app.register_blueprint(status_bp)
+#app.register_blueprint(rsvp_bp)
+#app.register_blueprint(gallery_bp)
+#app.register_blueprint(registry_bp)
+#app.register_blueprint(cron_bp)
+#app.register_blueprint(sync_link_bp)
 
 # 7. Register trigger blueprints
-app.register_blueprint(photo_processor_bp)
-app.register_blueprint(photo_deleter_bp)
+#app.register_blueprint(photo_processor_bp)
+#app.register_blueprint(photo_deleter_bp)
