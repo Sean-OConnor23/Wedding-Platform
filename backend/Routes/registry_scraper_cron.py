@@ -34,7 +34,7 @@ def daily_price_scraper_cron(myTimer: func.TimerRequest) -> None:
         
         openai_client = AzureOpenAI(
             azure_endpoint=openai_endpoint,
-            azure_ad_token_provider=token,
+            azure_ad_token_provider=get_token_provider(),
             api_version="2024-02-01"
         )
 
