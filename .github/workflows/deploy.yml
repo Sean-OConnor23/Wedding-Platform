@@ -50,7 +50,6 @@ jobs:
           app-name: 'wedding-api-prod-server'
           package: './backend'
           publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
-          # Force Azure to run pip install -r requirements.txt natively on the server:
           scm-do-build-during-deployment: true
           enable-oryx-build: true
 
