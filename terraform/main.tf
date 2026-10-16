@@ -47,7 +47,7 @@ resource "azuread_application_federated_identity_credential" "github_oidc" {
   issuer         = "https://githubusercontent.com"
 
   # Replace with your exact repository context mapping string
-  subject = "Wedding-Platform:Sean-OConnor23/WeddingPlatform:ref:refs/heads/main"
+  subject = "repo:Sean-OConnor23/Wedding-Platform:ref:refs/heads/main"
 }
 
 # 4. Grant Contributor permissions exclusively to your target Resource Group
