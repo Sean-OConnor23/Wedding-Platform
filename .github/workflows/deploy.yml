@@ -44,20 +44,13 @@ jobs:
       - name: Checkout Source Code Repository
         uses: actions/checkout@v4
 
-      - name: Setup Python Environment
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install Runtime Dependency Layouts
-        run: |
-          cd backend
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt --target=".python_packages/lib/site-packages"
-
       - name: Publish Functions to Azure Runtime Nodes
         uses: Azure/functions-action@v1
         with:
-          app-name: 'wedding-api-prod-server' # Matches your exact Terraform name
+          app-name: 'wedding-api-prod-server'
           package: './backend'
           publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+          # Force Azure to run pip install -r requirements.txt natively on the server:
+          scm-do-build-during-deployment: true
+          enable-oryx-build: true
+

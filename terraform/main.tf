@@ -43,15 +43,14 @@ resource "azurerm_linux_function_app" "backend_api" {
     application_stack {
       python_version = "3.11"
     }
-    cors {
-      allowed_origins = ["https://brave-desert-0c2c2030f.1.azurestaticapps.net"] # Will restrict to your frontend domain post-deployment
-    }
   }
 
   # Terraform automatically pulls connection strings securely directly out of your data block
   app_settings = {
     "FUNCTIONS_WORKER_RUNTIME"        = "python"
     "AZURE_STORAGE_CONNECTION_STRING" = data.azurerm_storage_account.existing_storage.primary_connection_string
+    "AzureWebJobsFeatureFlags" = "EnableWorkerIndexing"
+    "SCM_DO_BUILD_DURING_DEPLOYMENT" = "true"
   }
 }
 
@@ -59,9 +58,9 @@ resource "azurerm_linux_function_app" "backend_api" {
 resource "azurerm_static_web_app" "frontend_ui" {
   name                = "wedding-platform-ui"
   resource_group_name = data.azurerm_resource_group.existing_rg.name
-  location            = "eastus2"
-  sku_tier            = "Free"
-  sku_size            = "Free"
+  location            = "westus2"
+  sku_tier            = "Standard"
+  sku_size            = "Standard"
 }
 
 # Output the SWA key directly to the terminal for your GitHub Secrets
