@@ -20,6 +20,11 @@ data "azurerm_storage_account" "existing_storage" {
   resource_group_name = data.azurerm_resource_group.existing_rg.name
 }
 
+data "azurerm_app_configuration" "existing_config" {
+  name                = "wedding-plat-appconfig"
+  resource_group_name = "Wedding-Platform"
+}
+
 # Create the Linux Consumption Plan (Serverless Billing Model)
 resource "azurerm_service_plan" "function_plan" {
   name                = "wedding-function-plan"
@@ -47,10 +52,15 @@ resource "azurerm_linux_function_app" "backend_api" {
 
   # Terraform automatically pulls connection strings securely directly out of your data block
   app_settings = {
-    "FUNCTIONS_WORKER_RUNTIME"        = "python"
-    "AZURE_STORAGE_CONNECTION_STRING" = data.azurerm_storage_account.existing_storage.primary_connection_string
-    "AzureWebJobsFeatureFlags" = "EnableWorkerIndexing"
+    "FUNCTIONS_WORKER_RUNTIME"       = "python"
+    "AzureWebJobsStorage"            = data.azurerm_storage_account.existing_storage.primary_connection_string
+    "AzureWebJobsFeatureFlags"       = "EnableWorkerIndexing"
     "SCM_DO_BUILD_DURING_DEPLOYMENT" = "true"
+    "ENABLE_ORYX_BUILD"              = "true"
+    "AppConfig_Endpoint"             = data.azurerm_app_configuration.existing_config.endpoint
+
+    #Need to check to see if we actually need this or if we can just use the AzureWebJobsStorage connection string
+    "AZURE_STORAGE_CONNECTION_STRING" = data.azurerm_storage_account.existing_storage.primary_connection_string
   }
 }
 

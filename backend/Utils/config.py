@@ -1,4 +1,5 @@
 # Utils/config.py
+import logging
 import os
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from azure.appconfiguration.provider import load, AzureAppConfigurationKeyVaultOptions
@@ -17,7 +18,7 @@ def initialize_cloud_config():
     
     app_config_endpoint = os.environ.get("AppConfig_Endpoint")
     if not app_config_endpoint:
-        print("Warning: AppConfig_Endpoint environment variable is missing from terminal!")
+        logging.warning("Warning: AppConfig_Endpoint environment variable is missing from terminal!")
         return
         
     try:
@@ -30,7 +31,7 @@ def initialize_cloud_config():
         )
         
         settings.update(loaded_provider)
-        print("All cloud configurations and Key Vault credentials synced successfully.")
+        logging.info("All cloud configurations and Key Vault credentials synced successfully.")
         
     except Exception as e:
-        print(f"\nCLOUD INITIALIZATION FAILED: {str(e)}")
+        logging.error(f"\nCLOUD INITIALIZATION FAILED: {str(e)}")
