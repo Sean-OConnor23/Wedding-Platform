@@ -40,6 +40,11 @@ jobs:
   deploy-backend:
     runs-on: ubuntu-latest
     name: Deploy Python Function Server
+
+    permissions:
+      id-token: write
+      contents: read
+
     steps:
       - name: Checkout Source Code Repository
         uses: actions/checkout@v4
