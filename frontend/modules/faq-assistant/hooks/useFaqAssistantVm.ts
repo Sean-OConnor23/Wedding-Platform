@@ -9,8 +9,6 @@ export interface IChatMessage {
 }
 
 export function useFaqViewModel() {
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL  || "http://localhost:7071/api";
-
   const [messages, setMessages] = useState<readonly IChatMessage[]>([
     { id: "1", sender: "assistant", text: "Hi! Ask me anything about the timeline, dress code, or locations!" }
   ]);
@@ -25,7 +23,7 @@ export function useFaqViewModel() {
     setChatInput("");
 
     try {
-      const res = await fetch(`${API_BASE}/ask-assistant`, {
+      const res = await fetch(`/api/ask-assistant`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: chatInput }),
