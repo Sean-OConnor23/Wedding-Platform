@@ -1,7 +1,6 @@
 import json
 import logging
 import azure.functions as func
-from azure.cosmos import CosmosClient
 from Utils.config import get_setting, get_credential
 
 status_bp = func.Blueprint()
@@ -14,6 +13,8 @@ def check_status(req: func.HttpRequest) -> func.HttpResponse:
 
     clean_id = photo_id.replace(".jpg", "").replace(".png", "").split("/")[-1]
     logging.info(f"Polling checkpoint inspecting metadata status for ID: {clean_id}")
+
+    from azure.cosmos import CosmosClient
 
     COSMOS_DB_ENDPOINT = get_setting("AZURE-COSMOSDB-ENDPOINT")
     COSMOS_DATABASE_NAME = get_setting("AZURE-COSMOSDB-DB")

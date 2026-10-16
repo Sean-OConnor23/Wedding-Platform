@@ -4,7 +4,6 @@ import json
 import logging
 import urllib.request
 import urllib.parse
-import re
 import uuid
 from Utils.config import get_setting, get_credential
 from openai import AzureOpenAI
