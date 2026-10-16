@@ -3,7 +3,6 @@
 import { useState, ChangeEvent, useCallback } from "react";
 
 export function useUploadViewModel() {
-  const API_BASE = "http://localhost:7071/api";
   const [uploadStatus, setUploadStatus] = useState("");
   const [isRejected, setIsRejected] = useState(false);
 
@@ -23,7 +22,7 @@ export function useUploadViewModel() {
       }
 
       try {
-        const res = await fetch(`${API_BASE}/check-status?id=${photoId}`);
+        const res = await fetch(`/api/check-status?id=${photoId}`);
         if (!res.ok) return;
 
         const data = await res.json();
@@ -51,12 +50,12 @@ export function useUploadViewModel() {
     if (!files || files.length === 0) return;
     
     const file = files[0];
-    setUploadStatus("⚡ Streaming file package to storage disks...");
+    setUploadStatus("Streaming file package to storage disks...");
     setIsRejected(false);
 
     try {
       const fileBuffer = await file.arrayBuffer();
-      const res = await fetch(`${API_BASE}/upload-image`, {
+      const res = await fetch(`/api/upload-image`, {
         method: "POST",
         headers: { "Content-Type": file.type },
         body: fileBuffer,

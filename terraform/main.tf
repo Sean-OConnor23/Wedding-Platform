@@ -117,8 +117,6 @@ resource "azurerm_function_app_flex_consumption" "backend_api" {
 }
 
 
-
-
 # Provision the Azure Static Web App (Frontend Hosting)
 resource "azurerm_static_web_app" "frontend_ui" {
   name                = "wedding-platform-ui"

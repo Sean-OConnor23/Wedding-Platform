@@ -1,5 +1,4 @@
 # Routes/get_photos.py
-import os
 import azure.functions as func
 import json
 import logging
@@ -59,7 +58,6 @@ def get_photos(req: func.HttpRequest) -> func.HttpResponse:
 
             authenticated_url = f"{storage_account}/{"wedding-photos"}/{blob_name}?{sas_token}"
 
-            # 🟢 FIX 2: Safely extract tags array out of c.aiAnalysis.tags nesting
             ai_analysis = item.get("aiAnalysis", {})
             flat_tags_list = ai_analysis.get("tags", []) if isinstance(ai_analysis, dict) else []
 

@@ -1,7 +1,7 @@
 annotated-types==0.7.0
 anyio==4.14.2
 azure-ai-vision-imageanalysis==1.0.0
-azure-appconfiguration==1.7.1
+azure-appconfiguration==1.8.1
 azure-core==1.41.0
 azure-identity==1.25.3
 azure-functions==1.25.0
