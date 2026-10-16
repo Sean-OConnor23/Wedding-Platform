@@ -51,6 +51,8 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
                             (Updates guest screen)
 ```
 
+##Things I Have Learned Via Roadblocks:
+
 
 ## Activity Log
 #### October 11
@@ -121,3 +123,4 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
      - Runtime engine for your development tools
      - Powers npm; Used for local development
      - Javascript Runtime Environment
+4. Lazy Importing In Serverless Environments
