@@ -16,7 +16,8 @@ def ask_assistant(req: func.HttpRequest) -> func.HttpResponse:
     search_endpoint = settings.get("AZURE-SEARCH-ENDPOINT")
     search_index = settings.get("AZURE-SEARCH-INDEX")
 
-    system_prompt = settings.get("WEDDING-FAQ-CONTEXT")
+    # Open Routes/faq_assistant.py and update line 21 with a clean fallback string:
+    system_prompt = settings.get("WEDDING-FAQ-CONTEXT") or "You are a helpful wedding coordinator AI assistant. Use the provided context to answer guest questions accurately."
 
     if not openai_endpoint or not search_endpoint:
         return func.HttpResponse(
@@ -65,16 +66,20 @@ def ask_assistant(req: func.HttpRequest) -> func.HttpResponse:
         # STEP TWO: Inject context into the LLM system prompt
         system_instruction = f"{system_prompt}--- CONTEXT TO USE ---\n{retrieved_context}"
         
-        
+        # Determine the correct key name based on your deployment model type
+        system_key = "instruction" if ("o1" in model_deployment or "o3" in model_deployment) else "content"
+
+        # Build your messages array with completely valid dictionary syntax
+        messages_payload = [
+            {"role": "system", system_key: system_instruction},
+            {"role": "user", "content": guest_question}
+        ]
 
         # STEP THREE: Send the augmented prompt to the model deployment
         response = openai_client.chat.completions.create(
             model=model_deployment,
-            messages=[
-                {"role": "system", "instruction" if "o1" in model_deployment or "o3" in model_deployment else "content": system_instruction},
-                {"role": "user", "content": guest_question}
-            ],
-            temperature=1 if "o1" in model_deployment or "o3" in model_deployment else 0.3,
+            messages=messages_payload,
+            temperature=1 if ("o1" in model_deployment or "o3" in model_deployment) else 0.3,
             max_completion_tokens=250
         )
         
