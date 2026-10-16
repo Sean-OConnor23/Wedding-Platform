@@ -1,5 +1,5 @@
 import azure.functions as func
-# from Routes.faq_assistant import assistant_bp
+from Routes.faq_assistant import assistant_bp
 # from Routes.photo_portal import portal_bp
 # from Routes.check_photo_status import status_bp
 # from Routes.get_invite import rsvp_bp
@@ -17,7 +17,7 @@ def ping_endpoint(req: func.HttpRequest) -> func.HttpResponse:
     return func.HttpResponse("Pong! Pipeline verified.", status_code=200)
 
 # 6. Register routing blueprints
-#app.register_blueprint(assistant_bp)
+app.register_blueprint(assistant_bp)
 #app.register_blueprint(portal_bp)
 #app.register_blueprint(status_bp)
 #app.register_blueprint(rsvp_bp)
