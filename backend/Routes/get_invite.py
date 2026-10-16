@@ -1,10 +1,8 @@
 import azure.functions as func
-from azure.cosmos import CosmosClient
 import json
 import logging
 from Utils.config import get_setting, get_credential
 
-# Instantiate the v2 Blueprint engine
 rsvp_bp = func.Blueprint()
 
 _container_cache = None
@@ -15,7 +13,8 @@ def get_cosmos_container():
     if _container_cache is not None:
         return _container_cache
 
-    # 1. Fetch values and add clear error checking
+    from azure.cosmos import CosmosClient
+
     endpoint = get_setting("AZURE-COSMOSDB-ENDPOINT")
     db_name = get_setting("AZURE-COSMOSDB-DB")
     container_name = get_setting("AZURE-COSMOSDB-RSVP-CONTAINER")
@@ -24,13 +23,12 @@ def get_cosmos_container():
         logging.critical("CRITICAL CONFIG ERROR: 'AZURE-COSMOSDB-ENDPOINT' returned None or Empty!")
         raise ValueError("AZURE-COSMOSDB-ENDPOINT config value is missing. Check your local settings/Azure App Config mapping.")
 
-    # 2. Build the client connection safely
     logging.info(f"Initializing CosmosClient keylessly targeting endpoint: {endpoint}")
     client = CosmosClient(url=endpoint, credential=get_credential())
     _container_cache = client.get_database_client(db_name).get_container_client(container_name)
     return _container_cache
 
-# --- ENDPOINT 1: GET INVITE BY EMAIL ---
+
 @rsvp_bp.route(route="get-invite", methods=["GET"])
 def get_invite(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Processing email lookup query request.")
