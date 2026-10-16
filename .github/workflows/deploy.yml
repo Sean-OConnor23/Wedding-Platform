@@ -76,6 +76,8 @@ jobs:
         with:
           app-name: "wedding-api-prod-server"
           package: "./backend"
-          sku: "flexconsumption" # This natively handles the deployment packaging and forces trigger synchronization automatically
+          sku: "flexconsumption" 
+          scm-do-build-during-deployment: false
+          enable-oryx-build: false
 
 
