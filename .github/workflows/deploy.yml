@@ -60,10 +60,25 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # ⚠️ ZIP AND PUSH NATIVELY TO BYPASS THE ACTION BUG
-      - name: Zip and Deploy Backend to Flex Consumption
+      - name: Install Dependencies, Package, and Deploy
         run: |
           cd backend
+          
+          # 1. Install dependencies natively into the target folder structure
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt --target=".python_packages/lib/site-packages"
+          
+          # 2. Package everything including the hidden .python_packages folder
           zip -r ../deploy.zip .
-          az functionapp deployment source config-zip --name "wedding-api-prod-server" --resource-group "Wedding-Platform" --src "../deploy.zip"
+          
+          # 3. Deploy the zipped artifact
+          az functionapp deployment source config-zip \
+            --name "wedding-api-prod-server" \
+            --resource-group "Wedding-Platform" \
+            --src "../deploy.zip"
+            
+          # 4. Explicitly force the Flex Consumption metadata engine to refresh
+          az functionapp deployment source sync-triggers \
+            --name "wedding-api-prod-server" \
+            --resource-group "Wedding-Platform"
 
