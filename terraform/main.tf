@@ -108,7 +108,7 @@ resource "azurerm_function_app_flex_consumption" "backend_api" {
 
   app_settings = {
     "AzureWebJobsFeatureFlags"              = "EnableWorkerIndexing"
-    "AppConfig_Endpoint"                    = "https://${data.azurerm_app_configuration.existing_config.endpoint}"
+    "AppConfig_Endpoint"                    = data.azurerm_app_configuration.existing_config.endpoint
     "APPINSIGHTS_INSTRUMENTATIONKEY"        = azurerm_application_insights.app_insights.instrumentation_key
     "APPLICATIONINSIGHTS_CONNECTION_STRING" = azurerm_application_insights.app_insights.connection_string
     "AZURE_STORAGE_CONNECTION_STRING"       = data.azurerm_storage_account.existing_storage.primary_connection_string

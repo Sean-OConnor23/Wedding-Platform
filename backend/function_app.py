@@ -12,8 +12,12 @@ from Triggers.photo_deleter import photo_deleter_bp
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 
+@app.route(route="ping", methods=["GET"])
+def ping_endpoint(req: func.HttpRequest) -> func.HttpResponse:
+    return func.HttpResponse("Pong! Pipeline verified.", status_code=200)
+
 # 6. Register routing blueprints
-app.register_blueprint(assistant_bp)
+#app.register_blueprint(assistant_bp)
 #app.register_blueprint(portal_bp)
 #app.register_blueprint(status_bp)
 #app.register_blueprint(rsvp_bp)
