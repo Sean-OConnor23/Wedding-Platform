@@ -2,14 +2,12 @@
 import datetime
 import json
 import logging
-import urllib.parse
 import urllib.request
 import uuid
-import os
 import azure.functions as func
 from openai import AzureOpenAI
 from azure.cosmos import CosmosClient
-from Utils.config import settings, credential, token
+from Utils.config import get_setting, get_credential, get_token_provider
 
 cron_bp = func.Blueprint()
 
@@ -20,18 +18,18 @@ def daily_price_scraper_cron(myTimer: func.TimerRequest) -> None:
 
     try:
         # Dynamic Configuration Ingestion
-        openai_endpoint = settings.get("AZURE-OPENAI-ENDPOINT")
-        model_deployment = settings.get("AZURE-OPENAI-DEPLOYMENT", "gpt-4o-mini")
-        COSMOS_DB_ENDPOINT = settings.get("AZURE-COSMOSDB-ENDPOINT")
-        COSMOS_DATABASE_NAME = settings.get("AZURE-COSMOSDB-DB")
-        REGISTRY_CONTAINER_NAME = settings.get("AZURE-COSMOSDB-REGISTRY-CONTAINER", "Registry")
+        openai_endpoint = get_setting("AZURE-OPENAI-ENDPOINT")
+        model_deployment = get_setting("AZURE-OPENAI-DEPLOYMENT", "gpt-4o-mini")
+        COSMOS_DB_ENDPOINT = get_setting("AZURE-COSMOSDB-ENDPOINT")
+        COSMOS_DATABASE_NAME = get_setting("AZURE-COSMOSDB-DB")
+        REGISTRY_CONTAINER_NAME = get_setting("AZURE-COSMOSDB-REGISTRY-CONTAINER", "Registry")
         
         # 🟢 HERE IS WHERE YOUR PROXY KEYS ARE READ FROM CONFIG ENGINES:
-        proxy_base_url = settings.get("SCRAPER-API-ENDPOINT")
-        proxy_secret_key = settings.get("SCRAPER-API-KEY")
+        proxy_base_url = get_setting("SCRAPER-API-ENDPOINT")
+        proxy_secret_key = get_setting("SCRAPER-API-KEY")
 
         # Set up core keyless infrastructure clients
-        cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=credential)
+        cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=get_credential())
         container = cosmos_client.get_database_client(COSMOS_DATABASE_NAME).get_container_client(REGISTRY_CONTAINER_NAME)
         
         openai_client = AzureOpenAI(

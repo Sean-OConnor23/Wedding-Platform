@@ -1,12 +1,10 @@
 import logging
 import azure.functions as func
-from Utils.config import settings, credential
+from Utils.config import get_setting, get_credential
 from azure.cosmos import CosmosClient, exceptions
 
 # 1. Initialize the Event Trigger Blueprint
 photo_deleter_bp = func.Blueprint()
-
-
 
 # 4. OFFICIAL EVENT GRID DECORATOR
 # This is no longer an HTTP endpoint. It listens natively to Azure Event Grid messages!
@@ -16,11 +14,11 @@ def photo_deleter(event: func.EventGridEvent) -> None:
 
     try:
 
-        COSMOS_DB_ENDPOINT = settings.get("AZURE-COSMOSDB-ENDPOINT")
-        COSMOS_DATABASE_NAME = settings.get("AZURE-COSMOSDB-DB")
-        COSMOS_CONTAINER_NAME = settings.get("AZURE-COSMOSDB-CONTAINER")
+        COSMOS_DB_ENDPOINT = get_setting("AZURE-COSMOSDB-ENDPOINT")
+        COSMOS_DATABASE_NAME = get_setting("AZURE-COSMOSDB-DB")
+        COSMOS_CONTAINER_NAME = get_setting("AZURE-COSMOSDB-CONTAINER")
 
-        cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=credential)
+        cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=get_credential())
         database = cosmos_client.get_database_client(COSMOS_DATABASE_NAME)
         container = database.get_container_client(COSMOS_CONTAINER_NAME)
 

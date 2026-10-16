@@ -3,7 +3,7 @@ import azure.functions as func
 import json
 import logging
 from azure.cosmos import CosmosClient
-from Utils.config import settings, credential
+from Utils.config import get_setting, get_credential
 
 registry_bp = func.Blueprint()
 
@@ -12,12 +12,12 @@ def get_registry(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Compiling client registry list from pre-cached database values.")
 
     try:
-        COSMOS_DB_ENDPOINT = settings.get("AZURE-COSMOSDB-ENDPOINT")
-        COSMOS_DATABASE_NAME = settings.get("AZURE-COSMOSDB-DB")
+        COSMOS_DB_ENDPOINT = get_setting("AZURE-COSMOSDB-ENDPOINT")
+        COSMOS_DATABASE_NAME = get_setting("AZURE-COSMOSDB-DB")
         # Ensure this pulls your exact container tracking name configuration parameter
-        REGISTRY_CONTAINER_NAME = settings.get("AZURE-COSMOSDB-REGISTRY-CONTAINER") 
+        REGISTRY_CONTAINER_NAME = get_setting("AZURE-COSMOSDB-REGISTRY-CONTAINER") 
         
-        cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=credential)
+        cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=get_credential())
         container = cosmos_client.get_database_client(COSMOS_DATABASE_NAME).get_container_client(REGISTRY_CONTAINER_NAME)
         # Pull wishlist items that are still active
         query = "SELECT * FROM c WHERE c.purchasedQuantity < c.requestedQuantity"

@@ -6,7 +6,7 @@ import urllib.request
 import urllib.parse
 import re
 import uuid
-from Utils.config import settings, credential
+from Utils.config import get_setting, get_credential
 from openai import AzureOpenAI
 from azure.cosmos import CosmosClient
 
@@ -28,22 +28,22 @@ def sync_registry_link(req: func.HttpRequest) -> func.HttpResponse:
             )
 
         # Pull system configurations keylessly from central config
-        openai_endpoint = settings.get("AZURE-OPENAI-ENDPOINT")
-        model_deployment = settings.get("AZURE-OPENAI-DEPLOYMENT", "gpt-4o-mini")
-        COSMOS_DB_ENDPOINT = settings.get("AZURE-COSMOSDB-ENDPOINT")
-        COSMOS_DATABASE_NAME = settings.get("AZURE-COSMOSDB-DB")
-        REGISTRY_CONTAINER_NAME = settings.get("AZURE-COSMOSDB-REGISTRY-CONTAINER", "Registry")
+        openai_endpoint = get_setting("AZURE-OPENAI-ENDPOINT")
+        model_deployment = get_setting("AZURE-OPENAI-DEPLOYMENT", "gpt-4o-mini")
+        COSMOS_DB_ENDPOINT = get_setting("AZURE-COSMOSDB-ENDPOINT")
+        COSMOS_DATABASE_NAME = get_setting("AZURE-COSMOSDB-DB")
+        REGISTRY_CONTAINER_NAME = get_setting("AZURE-COSMOSDB-REGISTRY-CONTAINER", "Registry")
         
         # Pull proxy mapping parameters keylessly
-        proxy_base_url = settings.get("SCRAPER-API-ENDPOINT")
-        proxy_secret_key = settings.get("SCRAPER-API-KEY")
+        proxy_base_url = get_setting("SCRAPER-API-ENDPOINT")
+        proxy_secret_key = get_setting("SCRAPER-API-KEY")
 
-        cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=credential)
+        cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=get_credential())
         container = cosmos_client.get_database_client(COSMOS_DATABASE_NAME).get_container_client(REGISTRY_CONTAINER_NAME)
 
         # Single-scope token provider to prevent the multi-resource AzureCliCredential crash
         def single_scope_token_provider() -> str:
-            token_obj = credential.get_token("https://azure.com")
+            token_obj = get_credential().get_token("https://azure.com")
             return token_obj.token
 
         openai_client = AzureOpenAI(

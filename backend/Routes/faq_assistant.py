@@ -3,7 +3,7 @@ import json
 import azure.functions as func
 from openai import AzureOpenAI
 from azure.search.documents import SearchClient
-from Utils.config import settings, credential, token
+from Utils.config import get_setting, get_credential, get_token_provider
 
 assistant_bp = func.Blueprint()
 
@@ -11,13 +11,13 @@ assistant_bp = func.Blueprint()
 def ask_assistant(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Processing a live grounded RAG query via blueprint.')
     
-    openai_endpoint = settings.get("AZURE-OPENAI-ENDPOINT")
-    model_deployment = settings.get("AZURE-OPENAI-DEPLOYMENT")    
-    search_endpoint = settings.get("AZURE-SEARCH-ENDPOINT")
-    search_index = settings.get("AZURE-SEARCH-INDEX")
+    openai_endpoint = get_setting("AZURE-OPENAI-ENDPOINT")
+    model_deployment = get_setting("AZURE-OPENAI-DEPLOYMENT")
+    search_endpoint = get_setting("AZURE-SEARCH-ENDPOINT")
+    search_index = get_setting("AZURE-SEARCH-INDEX")
 
     # Open Routes/faq_assistant.py and update line 21 with a clean fallback string:
-    system_prompt = settings.get("WEDDING-FAQ-CONTEXT") or "You are a helpful wedding coordinator AI assistant. Use the provided context to answer guest questions accurately."
+    system_prompt = get_setting("WEDDING-FAQ-CONTEXT") or "You are a helpful wedding coordinator AI assistant. Use the provided context to answer guest questions accurately."
 
     if not openai_endpoint or not search_endpoint:
         return func.HttpResponse(
@@ -42,12 +42,12 @@ def ask_assistant(req: func.HttpRequest) -> func.HttpResponse:
         search_client = SearchClient(
             endpoint=search_endpoint,
             index_name=search_index,
-            credential=credential
+            credential=get_credential()
         )
 
         openai_client = AzureOpenAI(
                     azure_endpoint=openai_endpoint,
-                    azure_ad_token_provider=token,
+                    azure_ad_token_provider=get_token_provider(),
                     api_version="2024-02-01"
                 )
 

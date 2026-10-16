@@ -5,7 +5,7 @@ from azure.ai.vision.imageanalysis import ImageAnalysisClient
 from azure.ai.vision.imageanalysis.models import VisualFeatures
 from azure.cosmos import CosmosClient
 from datetime import datetime
-from Utils.config import settings, credential
+from Utils.config import get_setting, get_credential
 
 photo_processor_bp = func.Blueprint()
 
@@ -16,23 +16,23 @@ def photo_processor(myblob: func.InputStream) -> None:
     file_id = raw_file_name.replace(".jpg", "").replace(".png", "")
     logging.info(f"Background worker analyzing AI verification for ID: {file_id}")
 
-    VISION_ENDPOINT = settings.get("AZURE-VISION-ENDPOINT")
-    COSMOS_DB_ENDPOINT = settings.get("AZURE-COSMOSDB-ENDPOINT")
-    COSMOS_DATABASE_NAME = settings.get("AZURE-COSMOSDB-DB")
-    COSMOS_CONTAINER_NAME = settings.get("AZURE-COSMOSDB-CONTAINER")
+    VISION_ENDPOINT = get_setting("AZURE-VISION-ENDPOINT")
+    COSMOS_DB_ENDPOINT = get_setting("AZURE-COSMOSDB-ENDPOINT")
+    COSMOS_DATABASE_NAME = get_setting("AZURE-COSMOSDB-DB")
+    COSMOS_CONTAINER_NAME = get_setting("AZURE-COSMOSDB-CONTAINER")
     
    
-    raw_wedding_keywords = settings.get("WEDDING_PHOTO_UPLOAD_CONTEXT")
+    raw_wedding_keywords = get_setting("WEDDING_PHOTO_UPLOAD_CONTEXT")
     WEDDING_KEYWORDS = {word.strip().lower() for word in raw_wedding_keywords.split(",")}
 
-    raw_censored_keywords = settings.get("WEDDING_CENSORED_CONTEXT")
+    raw_censored_keywords = get_setting("WEDDING_CENSORED_CONTEXT")
     CENSORED_KEYWORDS = {word.strip().lower() for word in raw_censored_keywords.split(",")}
 
     try:
         image_bytes = myblob.read()
 
         
-        with ImageAnalysisClient(endpoint=VISION_ENDPOINT, credential=credential) as vision_client:
+        with ImageAnalysisClient(endpoint=VISION_ENDPOINT, credential=get_credential()) as vision_client:
             analysis = vision_client.analyze(
                 image_data=image_bytes,
                 visual_features=[VisualFeatures.TAGS]
@@ -44,7 +44,7 @@ def photo_processor(myblob: func.InputStream) -> None:
         gallery_status = "APPROVED"
         rejection_reason = ""
 
-        raw_censored_keywords = settings.get("WEDDING_CENSORED_CONTEXT")
+        raw_censored_keywords = get_setting("WEDDING_CENSORED_CONTEXT")
         CENSORED_KEYWORDS = {word.strip().lower() for word in raw_censored_keywords.split(",")}
         has_safety_violation = any(flag in CENSORED_KEYWORDS for flag in extracted_tags)
 
@@ -63,7 +63,7 @@ def photo_processor(myblob: func.InputStream) -> None:
         if gallery_status != "APPROVED":
             logging.info(f"Sanitizing storage: Deleting rejected file '{raw_file_name}' from cloud container...")
             try:
-                blob_service_client = BlobServiceClient(account_url=settings.get("AZURE-STORAGE-ENDPOINT"), credential=credential)
+                blob_service_client = BlobServiceClient(account_url=get_setting("AZURE-STORAGE-ENDPOINT"), credential=get_credential())
                 blob_client = blob_service_client.get_blob_client(container="wedding-photos", blob=raw_file_name)
                 
                 # Delete the raw binary file out of storage instantly
@@ -72,7 +72,7 @@ def photo_processor(myblob: func.InputStream) -> None:
             except Exception as blob_err:
                 logging.error(f"Failed to delete unapproved blob: {str(blob_err)}")
 
-        cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=credential)
+        cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=get_credential())
         container = cosmos_client.get_database_client(COSMOS_DATABASE_NAME).get_container_client(COSMOS_CONTAINER_NAME)
 
         metadata_document = {

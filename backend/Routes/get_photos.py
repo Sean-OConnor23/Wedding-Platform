@@ -5,32 +5,30 @@ import logging
 from datetime import datetime, timedelta, timezone
 from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
 from azure.cosmos import CosmosClient
-from Utils.config import settings, credential
+from Utils.config import get_setting, get_credential
 
 gallery_bp = func.Blueprint()
-
-
 
 @gallery_bp.route(route="get-photos", methods=["GET"])
 def get_photos(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Querying Cosmos DB for uploaded photo assets.")
 
     try:
-        COSMOS_DB_ENDPOINT = settings.get("AZURE-COSMOSDB-ENDPOINT")
-        COSMOS_DATABASE_NAME = settings.get("AZURE-COSMOSDB-DB")
+        COSMOS_DB_ENDPOINT = get_setting("AZURE-COSMOSDB-ENDPOINT")
+        COSMOS_DATABASE_NAME = get_setting("AZURE-COSMOSDB-DB")
         # Ensure this pulls your exact container tracking name configuration parameter
-        PHOTOS_CONTAINER_NAME = settings.get("AZURE-COSMOSDB-CONTAINER") 
+        PHOTOS_CONTAINER_NAME = get_setting("AZURE-COSMOSDB-CONTAINER") 
 
-        cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=credential)
+        cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=get_credential())
         container = cosmos_client.get_database_client(COSMOS_DATABASE_NAME).get_container_client(PHOTOS_CONTAINER_NAME)
 
         # 🟢 FIX 1: Update SQL query to filter by your exact field: c.status = 'APPROVED'
         query = "SELECT * FROM c WHERE c.status = 'APPROVED' ORDER BY c._ts DESC"
         items = list(container.query_items(query=query, enable_cross_partition_query=True))
 
-        storage_account = settings.get("AZURE-STORAGE-ENDPOINT")
+        storage_account = get_setting("AZURE-STORAGE-ENDPOINT")
 
-        blob_service_client = BlobServiceClient(account_url=storage_account, credential=credential)
+        blob_service_client = BlobServiceClient(account_url=storage_account, credential=get_credential())
 
         start_time = datetime.now(timezone.utc)
         expiry_time = start_time + timedelta(hours=1)

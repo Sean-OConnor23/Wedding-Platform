@@ -2,7 +2,7 @@ import json
 import logging
 import azure.functions as func
 from azure.cosmos import CosmosClient
-from Utils.config import settings, credential
+from Utils.config import get_setting, get_credential
 
 status_bp = func.Blueprint()
 
@@ -15,12 +15,12 @@ def check_status(req: func.HttpRequest) -> func.HttpResponse:
     clean_id = photo_id.replace(".jpg", "").replace(".png", "").split("/")[-1]
     logging.info(f"Polling checkpoint inspecting metadata status for ID: {clean_id}")
 
-    COSMOS_DB_ENDPOINT = settings.get("AZURE-COSMOSDB-ENDPOINT")
-    COSMOS_DATABASE_NAME = settings.get("AZURE-COSMOSDB-DB")
-    COSMOS_CONTAINER_NAME = settings.get("AZURE-COSMOSDB-CONTAINER")
+    COSMOS_DB_ENDPOINT = get_setting("AZURE-COSMOSDB-ENDPOINT")
+    COSMOS_DATABASE_NAME = get_setting("AZURE-COSMOSDB-DB")
+    COSMOS_CONTAINER_NAME = get_setting("AZURE-COSMOSDB-CONTAINER")
 
     try:
-        cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=credential)
+        cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=get_credential())
         container = cosmos_client.get_database_client(COSMOS_DATABASE_NAME).get_container_client(COSMOS_CONTAINER_NAME)
         
         query = "SELECT c.status, c.rejectionReason FROM c WHERE c.id = @photoId"

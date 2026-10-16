@@ -2,7 +2,7 @@ import azure.functions as func
 from azure.cosmos import CosmosClient
 import json
 import logging
-from Utils.config import settings, credential
+from Utils.config import get_setting, get_credential
 
 # Instantiate the v2 Blueprint engine
 rsvp_bp = func.Blueprint()
@@ -16,9 +16,9 @@ def get_cosmos_container():
         return _container_cache
 
     # 1. Fetch values and add clear error checking
-    endpoint = settings.get("AZURE-COSMOSDB-ENDPOINT")
-    db_name = settings.get("AZURE-COSMOSDB-DB")
-    container_name = settings.get("AZURE-COSMOSDB-RSVP-CONTAINER")
+    endpoint = get_setting("AZURE-COSMOSDB-ENDPOINT")
+    db_name = get_setting("AZURE-COSMOSDB-DB")
+    container_name = get_setting("AZURE-COSMOSDB-RSVP-CONTAINER")
 
     if not endpoint:
         logging.critical("CRITICAL CONFIG ERROR: 'AZURE-COSMOSDB-ENDPOINT' returned None or Empty!")
@@ -26,7 +26,7 @@ def get_cosmos_container():
 
     # 2. Build the client connection safely
     logging.info(f"Initializing CosmosClient keylessly targeting endpoint: {endpoint}")
-    client = CosmosClient(url=endpoint, credential=credential)
+    client = CosmosClient(url=endpoint, credential=get_credential())
     _container_cache = client.get_database_client(db_name).get_container_client(container_name)
     return _container_cache
 
