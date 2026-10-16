@@ -55,13 +55,13 @@ jobs:
 
       - name: Install Core Tools and Build Dependencies
         run: |
-          # 1. Install the official Azure Functions Core Tools globally on the runner
-          npm install -g azure-functions-core-tools@4 --unsafe-perm=true
-          
-          # 2. Build your local Python packages layout into the root directory
           cd backend
           python -m pip install --upgrade pip
+          # 1. Package dependencies directly into the root folder layer
           pip install -r requirements.txt --target=".python_packages/lib/site-packages"
+          
+          # 2. Manually generate a flat, production-ready ZIP archive
+          zip -r ../deploy.zip .
 
       - name: Az CLI Login via OIDC
         uses: azure/login@v3
@@ -70,14 +70,14 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # 3. The 100% official deployment action explicitly tailored for Flex
-      - name: Deploy Python App to Flex Consumption
-        uses: Azure/functions-action@v1
-        with:
-          app-name: "wedding-api-prod-server"
-          package: "./backend"
-          sku: "flexconsumption" 
-          language: "python"
+      # 3. Use the robust Azure CLI to push the bundle directly to the Flex plan
+      - name: Deploy Pre-compiled Package to Flex Consumption (CLI)
+        run: |
+          az functionapp deployment source config-zip \
+            --name "wedding-api-prod-server" \
+            --resource-group "Wedding-Platform" \
+            --src "deploy.zip" \
+            --build-remote false
     
 
 
