@@ -44,7 +44,7 @@ resource "azuread_application_federated_identity_credential" "github_oidc" {
   display_name   = "github-actions-main-branch"
   description    = "OIDC trust connection for GitHub Actions deployment pipeline"
   audiences      = ["api://AzureADTokenExchange"]
-  issuer         = "https://githubusercontent.com"
+  issuer         = "https://token.actions.githubusercontent.com"
 
   # Replace with your exact repository context mapping string
   subject = "repo:Sean-OConnor23/Wedding-Platform:ref:refs/heads/main"
