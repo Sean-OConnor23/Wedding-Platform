@@ -55,7 +55,7 @@ jobs:
 
       - name: Install Core Tools and Build Dependencies
         run: |
-          cd WeddingPlatform/backend
+          cd backend
           python -m pip install --upgrade pip
           
           # 1. Force your production requirements cleanly into the deployment workspace
