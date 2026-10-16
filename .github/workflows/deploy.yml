@@ -63,6 +63,8 @@ jobs:
           # 2. Manually generate a flat, production-ready ZIP archive
           zip -r ../deploy.zip .
 
+          unzip -l ../deploy.zip
+
       - name: Az CLI Login via OIDC
         uses: azure/login@v3
         with:
