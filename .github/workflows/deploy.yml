@@ -57,13 +57,14 @@ jobs:
         run: |
           cd backend
           python -m pip install --upgrade pip
-          # 1. Package dependencies directly into the root folder layer
+          
+          # 1. Force your production requirements cleanly into the deployment workspace
           pip install -r requirements.txt --target=".python_packages/lib/site-packages"
           
-          # 2. Manually generate a flat, production-ready ZIP archive
-          zip -r ../deploy.zip .
-
-          unzip -l ../deploy.zip
+          # 2. ─── USE THE CORRECT RELATIVE DIRECTORY PATH COMMAND FOR ZIP ───
+          # This forces Linux to recursively capture all directories (Routes, Triggers, Utils) 
+          # without using wildcard expansion bugs
+          zip -q -r ../deploy.zip .
 
       - name: Az CLI Login via OIDC
         uses: azure/login@v3
