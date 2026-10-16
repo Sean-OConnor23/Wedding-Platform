@@ -19,10 +19,10 @@ def daily_price_scraper_cron(myTimer: func.TimerRequest) -> None:
     try:
         # Dynamic Configuration Ingestion
         openai_endpoint = get_setting("AZURE-OPENAI-ENDPOINT")
-        model_deployment = get_setting("AZURE-OPENAI-DEPLOYMENT", "gpt-4o-mini")
+        model_deployment = get_setting("AZURE-OPENAI-DEPLOYMENT")
         COSMOS_DB_ENDPOINT = get_setting("AZURE-COSMOSDB-ENDPOINT")
         COSMOS_DATABASE_NAME = get_setting("AZURE-COSMOSDB-DB")
-        REGISTRY_CONTAINER_NAME = get_setting("AZURE-COSMOSDB-REGISTRY-CONTAINER", "Registry")
+        REGISTRY_CONTAINER_NAME = get_setting("AZURE-COSMOSDB-REGISTRY-CONTAINER")
         
         # 🟢 HERE IS WHERE YOUR PROXY KEYS ARE READ FROM CONFIG ENGINES:
         proxy_base_url = get_setting("SCRAPER-API-ENDPOINT")

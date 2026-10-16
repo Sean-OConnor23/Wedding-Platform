@@ -6,6 +6,8 @@ from azure.appconfiguration import AzureAppConfigurationClient
 # Global placeholders for singletons
 _app_config_client = None
 _cached_settings = {}
+_azure_credential = None
+_token_provider = None
 
 def get_setting(key_name: str) -> str:
     """Production-grade lazy loader for App Configuration keys."""
