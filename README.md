@@ -51,13 +51,14 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
                             (Updates guest screen)
 ```
 
-##Things I Have Learned Via Roadblocks:
-
+##Things I Have Learned Via Road Blocks:
+- When running things locally, even if you have your resource setup in Azure it is not a guarantee that when you go live it will be a smooth transition.
+- When diagnosing cloud issues, try to have only one variable at a time. When I initially pushed my Azure Function App I wasn't seeing any endpoints. After several hours of thinking something was wrong, I commented out the endpoints one by one until I realized it was an issue with specific endpoints that gave the appearance the entire resource was failing to connect. I tried using Log Streams here and other forms of debugging, which was not getting me the results I desired. If I would've started with the MVP on getting the Azure Function App setting up it would have been a more pain-free process. 
 
 ## Activity Log
-#### October 11
+#### October 11 - October 15
 - I have reorganized the UI to be more fluent. I have tried to pull the majority of the styling out into the global.css file to promote consistency in the user interface. In addition, I created a Button component to ensure consistency of all Buttons across the web app.
-- 
+- I have added in Terraform configuration to help deploy my website to production. In order to achieve this, I created an Azure Static Website and Azure Function App. I am currently debugging and trying to get the Function App to provide endpoints that the Static Web App is able to access. This will be my main focus prior to adding anymore feature work. I also need to break my Terraform configuration out into modules. Ideally, I would have used Terraform modules; however, since I am trying to learn Terraform I found it more advantageous to implement my IoC as much as I could. 
 #### August 7
 - I have added in a RSVP page that uses Google and Facebook OAuth to grab the users email. With this email, we query our database to find the corresponding rsvp to display. The user inputs their details and it writes back out to the database so that if the user were to access the database again it would produce the previously chosen selections.
 - I had to add the google and facebook secrets to KeyVault and reference them in App Configuration.
@@ -96,7 +97,9 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
 
 ## To Do List:
 - Registry
-- Separate the UI into separate components using a hamburger menu to navigate. Also look into maybe some global styling to make the tsx files look less complex
+- Bulletproof the Azure Function App
+- Ensure the Azure Function App speaks to Static Web App
+- Better Organize Terraform structure (import some pre-created resources into Terraform configuration)
 - Look at making a global for pulling in Cosmos DB. Looks like it is being referenced in multiple backend files.
 - Could I make images shareable? Also, can I have a trigger for when new images get uploaded it auto-refreshes?
 - Also, look at what it would take to get this website deployed live
@@ -124,3 +127,4 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
      - Powers npm; Used for local development
      - Javascript Runtime Environment
 4. Lazy Importing In Serverless Environments
+  - Reduces cold start times in serverless environments by deferring the loading of heavy modules until they are actually called.
