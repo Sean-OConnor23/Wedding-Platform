@@ -51,7 +51,7 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
                             (Updates guest screen)
 ```
 
-##Things I Have Learned Via Road Blocks:
+## Things I Have Learned Via Road Blocks:
 - When running things locally, even if you have your resource setup in Azure it is not a guarantee that when you go live it will be a smooth transition.
 - When diagnosing cloud issues, try to have only one variable at a time. When I initially pushed my Azure Function App I wasn't seeing any endpoints. After several hours of thinking something was wrong, I commented out the endpoints one by one until I realized it was an issue with specific endpoints that gave the appearance the entire resource was failing to connect. I tried using Log Streams here and other forms of debugging, which was not getting me the results I desired. If I would've started with the MVP on getting the Azure Function App setting up it would have been a more pain-free process. 
 
