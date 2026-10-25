@@ -1,5 +1,5 @@
 # Wedding-Platform
-This is the website I have created for my upcoming wedding. It utilizes a variety of Azure Services that I have learned about while completing my AI-200 certification.
+This is the website I have created for my upcoming wedding. It utilizes a variety of Azure Services that I have learned about while completing my AI-200, GH-200, and Terraform-004 certifications.
 
 ## Azure Services Used:
 1. Azure AI Foundry
