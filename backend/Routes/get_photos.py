@@ -54,7 +54,7 @@ def get_photos(req: func.HttpRequest) -> func.HttpResponse:
                 start=start_time
             )
 
-            authenticated_url = f"{storage_account}/{"wedding-photos"}/{blob_name}?{sas_token}"
+            authenticated_url = f"{storage_account}/{'wedding-photos'}/{blob_name}?{sas_token}"
 
             ai_analysis = item.get("aiAnalysis", {})
             flat_tags_list = ai_analysis.get("tags", []) if isinstance(ai_analysis, dict) else []
