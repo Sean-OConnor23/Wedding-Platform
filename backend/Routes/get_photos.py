@@ -4,7 +4,6 @@ import json
 import logging
 from datetime import datetime, timedelta, timezone
 from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
-from azure.cosmos import CosmosClient
 from Utils.config import get_setting, get_credential
 
 gallery_bp = func.Blueprint()
@@ -14,15 +13,15 @@ def get_photos(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Querying Cosmos DB for uploaded photo assets.")
 
     try:
+        from azure.cosmos import CosmosClient
+
         COSMOS_DB_ENDPOINT = get_setting("AZURE-COSMOSDB-ENDPOINT")
         COSMOS_DATABASE_NAME = get_setting("AZURE-COSMOSDB-DB")
-        # Ensure this pulls your exact container tracking name configuration parameter
         PHOTOS_CONTAINER_NAME = get_setting("AZURE-COSMOSDB-CONTAINER") 
 
         cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=get_credential())
         container = cosmos_client.get_database_client(COSMOS_DATABASE_NAME).get_container_client(PHOTOS_CONTAINER_NAME)
 
-        # 🟢 FIX 1: Update SQL query to filter by your exact field: c.status = 'APPROVED'
         query = "SELECT * FROM c WHERE c.status = 'APPROVED' ORDER BY c._ts DESC"
         items = list(container.query_items(query=query, enable_cross_partition_query=True))
 
