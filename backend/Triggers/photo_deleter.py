@@ -1,7 +1,6 @@
 import logging
 import azure.functions as func
 from Utils.config import get_setting, get_credential
-from azure.cosmos import CosmosClient, exceptions
 
 # 1. Initialize the Event Trigger Blueprint
 photo_deleter_bp = func.Blueprint()
@@ -13,7 +12,7 @@ def photo_deleter(event: func.EventGridEvent) -> None:
     logging.info(f"Native Event Grid notification captured. Event ID: {event.id}")
 
     try:
-
+        from azure.cosmos import CosmosClient, exceptions
         COSMOS_DB_ENDPOINT = get_setting("AZURE-COSMOSDB-ENDPOINT")
         COSMOS_DATABASE_NAME = get_setting("AZURE-COSMOSDB-DB")
         COSMOS_CONTAINER_NAME = get_setting("AZURE-COSMOSDB-CONTAINER")

@@ -3,7 +3,6 @@ import azure.functions as func
 from azure.storage.blob import BlobServiceClient
 from azure.ai.vision.imageanalysis import ImageAnalysisClient
 from azure.ai.vision.imageanalysis.models import VisualFeatures
-from azure.cosmos import CosmosClient
 from datetime import datetime
 from Utils.config import get_setting, get_credential
 
@@ -11,7 +10,8 @@ photo_processor_bp = func.Blueprint()
 
 @photo_processor_bp.blob_trigger(arg_name="myblob", path="wedding-photos/{name}", connection="AzureWebJobsStorage")
 def photo_processor(myblob: func.InputStream) -> None:
-    
+
+    from azure.cosmos import CosmosClient
     raw_file_name = myblob.name.split("/")[-1]
     file_id = raw_file_name.replace(".jpg", "").replace(".png", "")
     logging.info(f"Background worker analyzing AI verification for ID: {file_id}")
@@ -21,7 +21,6 @@ def photo_processor(myblob: func.InputStream) -> None:
     COSMOS_DATABASE_NAME = get_setting("AZURE-COSMOSDB-DB")
     COSMOS_CONTAINER_NAME = get_setting("AZURE-COSMOSDB-CONTAINER")
     
-   
     raw_wedding_keywords = get_setting("WEDDING_PHOTO_UPLOAD_CONTEXT")
     WEDDING_KEYWORDS = {word.strip().lower() for word in raw_wedding_keywords.split(",")}
 
