@@ -1,70 +1,69 @@
 import os
 import logging
-from azure.identity import DefaultAzureCredential, get_bearer_token_provider
-from azure.appconfiguration import AzureAppConfigurationClient
+from datetime import timedelta
+from azure.identity import DefaultAzureCredential
+from azure.appconfiguration.provider import load
 
-# Global placeholders for singletons
-_app_config_client = None
-_cached_settings = {}
-_azure_credential = None
-_token_provider = None
+# Global variables to cache the configuration provider and credentials
+_config_provider = None
+_credential = None
 
-def get_setting(key_name: str) -> str:
-    """Production-grade lazy loader for App Configuration keys."""
-    global _app_config_client, _cached_settings
+def _initialize_config():
+    """Initializes the Azure credential and configuration mapping."""
+    global _config_provider, _credential
+    
+    if _config_provider is not None:
+        return
 
-    # 1. Return immediately if we already fetched this key
-    if key_name in _cached_settings:
-        return _cached_settings[key_name]
-
-    # 2. Check for an explicit local environment fallback variable first
-    if os.environ.get(key_name):
-        return os.environ.get(key_name)
-
-    # 3. Initialize the cloud configuration client only on the first active API call
-    if _app_config_client is None:
-        endpoint = os.environ.get("AppConfig_Endpoint")
-        
-        # If no endpoint string exists, return an empty fallback to keep the code from crashing
-        if not endpoint:
-            logging.warning("AppConfig_Endpoint environment setting is missing.")
-            return ""
-
-        try:
-            # Prepend https:// if the Terraform string returned a bare hostname
-            if not endpoint.startswith("https://"):
-                endpoint = f"https://{endpoint}"
-
-            credential = DefaultAzureCredential()
-            _app_config_client = AzureAppConfigurationClient(base_url=endpoint, credential=credential)
-            logging.info("Successfully instantiated Azure App Configuration client.")
-        except Exception as e:
-            logging.error(f"Failed to create App Configuration connection: {str(e)}")
-            return ""
-
-    # 4. Pull the target value dynamically from your Azure configuration store
     try:
-        setting = _app_config_client.get_configuration_setting(key=key_name)
-        _cached_settings[key_name] = setting.value
-        return setting.value
-    except Exception as e:
-        logging.error(f"Error fetching runtime key '{key_name}' from cloud: {str(e)}")
-        return ""
+        # Automatically detects AZURE_CLIENT_ID in production 
+        # or uses 'az login' credentials during local debugging
+        _credential = DefaultAzureCredential()
+        
+        # Read the bootstrapping variable injected from the Function App environment
+        endpoint = os.environ.get("AZURE_APP_CONFIG_ENDPOINT")
+        
+        if not endpoint:
+            # Fallback for bare-minimum local testing if env variables aren't injected yet
+            logging.warning("AZURE_APP_CONFIG_ENDPOINT not found in environment. Falling back to local OS settings.")
+            return
+
+        logging.info(f"Connecting to Azure App Configuration endpoint: {endpoint}")
+        
+        # Load all configurations and dynamically resolve linked Key Vault secrets
+        _config_provider = load(
+            endpoint=endpoint,
+            credential=_credential,
+            refresh_interval=timedelta(minutes=5) # Caches configurations to stay within free/standard tier limits
+        )
+        logging.info("Successfully loaded data mapping from App Configuration.")
+        
+    except Exception as ex:
+        logging.error(f"Critical failure initializing cloud configurations: {str(ex)}")
+        raise
 
 def get_credential():
-    """Provides a lazy-loaded, singleton Azure credential instance."""
-    global _azure_credential
-    if _azure_credential is None:
-        _azure_credential = DefaultAzureCredential()
-    return _azure_credential
+    """Returns the authenticated DefaultAzureCredential token manager."""
+    _initialize_config()
+    if not _credential:
+        return DefaultAzureCredential()
+    return _credential
 
-def get_token_provider():
-    """Provides a lazy-loaded token provider for Azure OpenAI authentication."""
-    global _token_provider
-    if _token_provider is None:
-        # Flex Consumption handles the underlying credential scopes natively on demand
-        _token_provider = get_bearer_token_provider(
-            get_credential(), 
-            "https://cognitiveservices.azure.com/.default"
-        )
-    return _token_provider
+def get_setting(key_name: str) -> str:
+    """
+    Fetches a setting value. Looks up the value in Azure App Configuration first.
+    Falls back to a standard local environment variable if the cloud provider isn't initialized.
+    """
+    _initialize_config()
+    
+    # 1. Production Path: Attempt to read from the initialized cloud map
+    if _config_provider and key_name in _config_provider:
+        return _config_provider[key_name]
+        
+    # 2. Local Fallback Path: Read directly from local.settings.json or OS environment
+    value = os.environ.get(key_name)
+    if value:
+        return value
+        
+    logging.warning(f"Configuration key '{key_name}' could not be resolved in cloud provider or local workspace environment variables.")
+    return ""
