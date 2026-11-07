@@ -22,24 +22,17 @@ def _initialize_config():
 
         logging.info(f"Connecting to Azure App Configuration endpoint: {endpoint}")
         
-        # Version-independent fallback to resolve Key Vault configuration secrets references
+# Version-independent fallback to resolve Key Vault configuration secrets references
+                # Clean, error-free secret URI string parser callback
         def secret_resolver(secret_uri):
             from azure.keyvault.secrets import SecretClient
-            # Parses the raw secret URL reference cleanly
-            parts = secret_uri.split('/secrets/')
-            vault_url = parts[0]
-            secret_name = parts[1].split('/')[0]
+            
+            vault_url = secret_uri.split('/secrets/')[0]
+            secret_name = secret_uri.split('/secrets/')[1].split('/')[0]
             
             client = SecretClient(vault_url=vault_url, credential=_credential)
             return client.get_secret(secret_name).value
 
-        _config_provider = load(
-            endpoint=endpoint,
-            credential=_credential,
-            secret_resolver=secret_resolver,
-            refresh_interval=300  
-        )
-        logging.info("Successfully loaded data mapping from App Configuration.")
         
     except Exception as ex:
         logging.error(f"Critical failure initializing cloud configurations: {str(ex)}")
