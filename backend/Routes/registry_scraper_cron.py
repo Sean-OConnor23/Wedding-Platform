@@ -6,7 +6,6 @@ import urllib.request
 import uuid
 import azure.functions as func
 from openai import AzureOpenAI
-from azure.cosmos import CosmosClient
 from Utils.config import get_setting, get_credential, get_token_provider
 
 cron_bp = func.Blueprint()
@@ -17,6 +16,7 @@ def daily_price_scraper_cron(myTimer: func.TimerRequest) -> None:
     logging.info(f"Daily registry price optimization & delta sync cron job kicked off at: {utc_timestamp}")
 
     try:
+        from azure.cosmos import CosmosClient
         # Dynamic Configuration Ingestion
         openai_endpoint = get_setting("AZURE-OPENAI-ENDPOINT")
         model_deployment = get_setting("AZURE-OPENAI-DEPLOYMENT")

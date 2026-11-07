@@ -7,7 +7,6 @@ import urllib.parse
 import uuid
 from Utils.config import get_setting, get_credential
 from openai import AzureOpenAI
-from azure.cosmos import CosmosClient
 
 sync_link_bp = func.Blueprint()
 
@@ -16,6 +15,8 @@ def sync_registry_link(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Executing production enterprise-grade registry ingestion workflow.")
 
     try:
+        from azure.cosmos import CosmosClient
+        
         body = req.get_json()
         target_url = body.get("url", "").strip()
         store_name = body.get("storeName", "External Retailer").strip()

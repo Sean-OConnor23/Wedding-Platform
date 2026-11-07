@@ -11,12 +11,13 @@ def get_registry(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Compiling client registry list from pre-cached database values.")
 
     try:
+        from azure.cosmos import CosmosClient
+        
         COSMOS_DB_ENDPOINT = get_setting("AZURE-COSMOSDB-ENDPOINT")
         COSMOS_DATABASE_NAME = get_setting("AZURE-COSMOSDB-DB")
         # Ensure this pulls your exact container tracking name configuration parameter
         REGISTRY_CONTAINER_NAME = get_setting("AZURE-COSMOSDB-REGISTRY-CONTAINER") 
 
-        from azure.cosmos import CosmosClient
         cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=get_credential())
         container = cosmos_client.get_database_client(COSMOS_DATABASE_NAME).get_container_client(REGISTRY_CONTAINER_NAME)
         # Pull wishlist items that are still active
