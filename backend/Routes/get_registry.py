@@ -2,7 +2,6 @@
 import azure.functions as func
 import json
 import logging
-from azure.cosmos import CosmosClient
 from Utils.config import get_setting, get_credential
 
 registry_bp = func.Blueprint()
@@ -16,7 +15,8 @@ def get_registry(req: func.HttpRequest) -> func.HttpResponse:
         COSMOS_DATABASE_NAME = get_setting("AZURE-COSMOSDB-DB")
         # Ensure this pulls your exact container tracking name configuration parameter
         REGISTRY_CONTAINER_NAME = get_setting("AZURE-COSMOSDB-REGISTRY-CONTAINER") 
-        
+
+        from azure.cosmos import CosmosClient
         cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=get_credential())
         container = cosmos_client.get_database_client(COSMOS_DATABASE_NAME).get_container_client(REGISTRY_CONTAINER_NAME)
         # Pull wishlist items that are still active
