@@ -46,10 +46,10 @@ def ask_assistant(req: func.HttpRequest) -> func.HttpResponse:
         )
 
         openai_client = AzureOpenAI(
-                    azure_endpoint=openai_endpoint,
-                    azure_ad_token_provider=get_token_provider(),
-                    api_version="2024-02-01"
-                )
+            azure_endpoint=openai_endpoint,
+            azure_ad_token_provider=get_token_provider,
+            api_version="2024-02-01"
+)
 
         search_results = search_client.search(
             search_text=guest_question,

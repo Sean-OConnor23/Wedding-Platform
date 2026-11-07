@@ -18,7 +18,7 @@ app.register_blueprint(status_bp)
 app.register_blueprint(rsvp_bp)
 app.register_blueprint(gallery_bp)
 app.register_blueprint(registry_bp)
-app.register_blueprint(cron_bp)
+#app.register_blueprint(cron_bp) #Will get back to this one
 app.register_blueprint(sync_link_bp)
 app.register_blueprint(photo_processor_bp)
 app.register_blueprint(photo_deleter_bp)
