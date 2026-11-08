@@ -1,10 +1,8 @@
-# Routes/get_photos.py
-import azure.functions as func
 import json
 import logging
+import azure.functions as func
 from datetime import datetime, timedelta, timezone
 from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
-from Utils.config import get_setting, get_credential
 
 gallery_bp = func.Blueprint()
 
@@ -13,21 +11,18 @@ def get_photos(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Querying Cosmos DB for uploaded photo assets.")
 
     try:
-        from azure.cosmos import CosmosClient
+        from function_app import config, cosmos_client, credential
 
-        COSMOS_DB_ENDPOINT = get_setting("AZURE-COSMOSDB-ENDPOINT")
-        COSMOS_DATABASE_NAME = get_setting("AZURE-COSMOSDB-DB")
-        PHOTOS_CONTAINER_NAME = get_setting("AZURE-COSMOSDB-CONTAINER") 
+        COSMOS_DATABASE_NAME = config["AZURE-COSMOSDB-DB"]
+        PHOTOS_CONTAINER_NAME = config["AZURE-COSMOSDB-CONTAINER"] 
+        storage_account_endpoint = config["AZURE-STORAGE-ENDPOINT"]
 
-        cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=get_credential())
         container = cosmos_client.get_database_client(COSMOS_DATABASE_NAME).get_container_client(PHOTOS_CONTAINER_NAME)
 
         query = "SELECT * FROM c WHERE c.status = 'APPROVED' ORDER BY c._ts DESC"
         items = list(container.query_items(query=query, enable_cross_partition_query=True))
 
-        storage_account = get_setting("AZURE-STORAGE-ENDPOINT")
-
-        blob_service_client = BlobServiceClient(account_url=storage_account, credential=get_credential())
+        blob_service_client = BlobServiceClient(account_url=storage_account_endpoint, credential=credential)
 
         start_time = datetime.now(timezone.utc)
         expiry_time = start_time + timedelta(hours=1)
@@ -53,7 +48,7 @@ def get_photos(req: func.HttpRequest) -> func.HttpResponse:
                 start=start_time
             )
 
-            authenticated_url = f"{storage_account}/{'wedding-photos'}/{blob_name}?{sas_token}"
+            authenticated_url = f"{storage_account_endpoint}/{'wedding-photos'}/{blob_name}?{sas_token}"
 
             ai_analysis = item.get("aiAnalysis", {})
             flat_tags_list = ai_analysis.get("tags", []) if isinstance(ai_analysis, dict) else []
