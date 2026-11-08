@@ -16,15 +16,24 @@ from Triggers.photo_processor import photo_processor_bp
 from Triggers.photo_deleter import photo_deleter_bp
 
 credential = DefaultAzureCredential()
-APP_CONFIG_ENDPOINT = os.environ.get["AZURE_APP_CONFIG_ENDPOINT"]
+APP_CONFIG_ENDPOINT = os.environ["AZURE_APP_CONFIG_ENDPOINT"]
 
-config = load(
+def production_secret_resolver(secret_uri: str) -> str:
+    from azure.keyvault.secrets import SecretClient
+    uri_parts = secret_uri.split('/secrets/')
+    base_vault_url = uri_parts[0]
+    secret_name = uri_parts[1].split('/')[0]
+    
+    client = SecretClient(vault_url=base_vault_url, credential=credential)
+    return client.get_secret(secret_name).value
+
+azure_settings = load(
     endpoint=APP_CONFIG_ENDPOINT,
     credential=credential,
-    key_vault_credential = credential,
+    secret_resolver=production_secret_resolver,
     refresh_interval=300)
 
-cosmos_client = CosmosClient(url=config.get("AZURE-COSMOSDB-ENDPOINT"), credential=credential)
+cosmos_client = CosmosClient(url=azure_settings.get("AZURE-COSMOSDB-ENDPOINT"), credential=credential)
 
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
@@ -34,7 +43,7 @@ app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 #app.register_blueprint(status_bp)
 #app.register_blueprint(rsvp_bp)
 app.register_blueprint(gallery_bp)
-#app.register_blueprint(registry_bp)a
+#app.register_blueprint(registry_bp)
 #app.register_blueprint(cron_bp) #Will get back to this one
 #app.register_blueprint(sync_link_bp)
 #app.register_blueprint(photo_processor_bp)

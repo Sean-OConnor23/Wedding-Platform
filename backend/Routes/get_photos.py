@@ -11,11 +11,11 @@ def get_photos(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Querying Cosmos DB for uploaded photo assets.")
 
     try:
-        from function_app import config, cosmos_client, credential
+        from function_app import azure_settings, cosmos_client, credential
 
-        COSMOS_DATABASE_NAME = config.get("AZURE-COSMOSDB-DB")
-        PHOTOS_CONTAINER_NAME = config.get("AZURE-COSMOSDB-CONTAINER")
-        storage_account_endpoint = config.get("AZURE-STORAGE-ENDPOINT")
+        COSMOS_DATABASE_NAME = azure_settings.get("AZURE-COSMOSDB-DB")
+        PHOTOS_CONTAINER_NAME = azure_settings.get("AZURE-COSMOSDB-CONTAINER")
+        storage_account_endpoint = azure_settings.get("AZURE-STORAGE-ENDPOINT")
 
         container = cosmos_client.get_database_client(COSMOS_DATABASE_NAME).get_container_client(PHOTOS_CONTAINER_NAME)
 
