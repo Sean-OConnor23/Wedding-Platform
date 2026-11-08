@@ -24,7 +24,7 @@ config = load(
     key_vault_credential = credential,
     refresh_interval=300)
 
-cosmos_client = CosmosClient(url=config["AZURE-COSMOSDB-ENDPOINT"], credential=credential)
+cosmos_client = CosmosClient(url=config.get("AZURE-COSMOSDB-ENDPOINT"), credential=credential)
 
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)

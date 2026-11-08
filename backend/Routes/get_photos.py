@@ -13,9 +13,9 @@ def get_photos(req: func.HttpRequest) -> func.HttpResponse:
     try:
         from function_app import config, cosmos_client, credential
 
-        COSMOS_DATABASE_NAME = config["AZURE-COSMOSDB-DB"]
-        PHOTOS_CONTAINER_NAME = config["AZURE-COSMOSDB-CONTAINER"] 
-        storage_account_endpoint = config["AZURE-STORAGE-ENDPOINT"]
+        COSMOS_DATABASE_NAME = config.get("AZURE-COSMOSDB-DB")
+        PHOTOS_CONTAINER_NAME = config.get("AZURE-COSMOSDB-CONTAINER")
+        storage_account_endpoint = config.get("AZURE-STORAGE-ENDPOINT")
 
         container = cosmos_client.get_database_client(COSMOS_DATABASE_NAME).get_container_client(PHOTOS_CONTAINER_NAME)
 
