@@ -18,23 +18,13 @@ from Triggers.photo_deleter import photo_deleter_bp
 credential = DefaultAzureCredential()
 APP_CONFIG_ENDPOINT = os.environ["AZURE_APP_CONFIG_ENDPOINT"]
 
-def production_secret_resolver(secret_uri: str) -> str:
-    from azure.keyvault.secrets import SecretClient
-    uri_parts = secret_uri.split('/secrets/')
-    base_vault_url = uri_parts[0]
-    secret_name = uri_parts[1].split('/')[0]
-    
-    client = SecretClient(vault_url=base_vault_url, credential=credential)
-    return client.get_secret(secret_name).value
-
 azure_settings = load(
     endpoint=APP_CONFIG_ENDPOINT,
     credential=credential,
-    secret_resolver=production_secret_resolver,
+    keyvault_credential=credential,
     refresh_interval=300)
 
 cosmos_client = CosmosClient(url=azure_settings.get("AZURE-COSMOSDB-ENDPOINT"), credential=credential)
-
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 
