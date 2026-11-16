@@ -48,23 +48,10 @@ jobs:
       - name: Checkout Source Code Repository
         uses: actions/checkout@v4
 
-      - name: Setup Python Environment
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install Core Tools and Build Dependencies
+      - name: Package Backend Code
         run: |
-          cd backend
-          python -m pip install --upgrade pip
-          
-          # 1. Force your production requirements cleanly into the deployment workspace
-          pip install -r requirements.txt --target=".python_packages/lib/site-packages"
-          
-          # 2. ─── USE THE CORRECT RELATIVE DIRECTORY PATH COMMAND FOR ZIP ───
-          # This forces Linux to recursively capture all directories (Routes, Triggers, Utils) 
-          # without using wildcard expansion bugs
-          zip -r -q ../deploy.zip . -x "local.settings.json" "secret.settings.json" ".venv/*"
+          cd Backend
+          zip -r -q ../deploy.zip . -x "local.settings.json" "secret.settings.json" ".venv/*" "__pycache__/*"
 
       - name: Az CLI Login via OIDC
         uses: azure/login@v3
@@ -73,14 +60,13 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # 3. Use the robust Azure CLI to push the bundle directly to the Flex plan
-      - name: Deploy Pre-compiled Package to Flex Consumption (CLI)
+      - name: Deploy Package to Flex Consumption (Remote Build)
         run: |
           az functionapp deployment source config-zip \
             --name "wedding-api-prod-server" \
             --resource-group "Wedding-Platform" \
             --src "deploy.zip" \
-            --build-remote false
+            --build-remote true
     
 
 
