@@ -50,7 +50,7 @@ jobs:
 
       - name: Package Backend Code
         run: |
-          cd Backend
+          cd backend
           zip -r -q ../deploy.zip . -x "local.settings.json" "secret.settings.json" ".venv/*" "__pycache__/*"
 
       - name: Az CLI Login via OIDC
