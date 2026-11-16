@@ -34,7 +34,7 @@ async def get_photos(req: func.HttpRequest) -> func.HttpResponse:
 
         # 3. Stream query items asynchronously without blocking threads
         query = "SELECT * FROM c WHERE c.status = 'APPROVED' ORDER BY c._ts DESC"
-        query_iterable = container.query_items(query=query, enable_cross_partition_query=True)
+        query_iterable = container.query_items(query=query)
         
         items = []
         async for item in query_iterable:
