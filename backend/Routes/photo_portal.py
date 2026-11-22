@@ -1,10 +1,8 @@
-import os
 import azure.functions as func
 import logging
 import json
 import uuid
 from azure.storage.blob.aio import BlobServiceClient as AsyncBlobServiceClient
-from azure.identity.aio import DefaultAzureCredential as AsyncDefaultAzureCredential
 from .factory import lifecycle
 
 portal_bp = func.Blueprint()

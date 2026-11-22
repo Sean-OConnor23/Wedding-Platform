@@ -1,28 +1,28 @@
 import json
 import logging
 import azure.functions as func
-from Utils.config import get_setting, get_credential
+from .factory import lifecycle
+from azure.cosmos import CosmosClient
 
 status_bp = func.Blueprint()
 
 @status_bp.route(route="check-status", methods=["GET"])
-def check_status(req: func.HttpRequest) -> func.HttpResponse:
-    photo_id = req.params.get("id")
-    if not photo_id:
-        return func.HttpResponse("Missing ID parameter.", status_code=400)
-
-    clean_id = photo_id.replace(".jpg", "").replace(".png", "").split("/")[-1]
-    logging.info(f"Polling checkpoint inspecting metadata status for ID: {clean_id}")
-
-    from azure.cosmos import CosmosClient
-
-    COSMOS_DB_ENDPOINT = get_setting("AZURE-COSMOSDB-ENDPOINT")
-    COSMOS_DATABASE_NAME = get_setting("AZURE-COSMOSDB-DB")
-    COSMOS_CONTAINER_NAME = get_setting("AZURE-COSMOSDB-CONTAINER")
-
+async def check_status(req: func.HttpRequest) -> func.HttpResponse:
     try:
-        cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=get_credential())
-        container = cosmos_client.get_database_client(COSMOS_DATABASE_NAME).get_container_client(COSMOS_CONTAINER_NAME)
+        photo_id = req.params.get("id")
+        if not photo_id:
+            return func.HttpResponse("Missing ID parameter.", status_code=400)
+        
+        azure_settings = lifecycle.get_sync_settings()
+        async_cosmos_client = await lifecycle.get_async_cosmos_client()
+
+        COSMOS_DATABASE_NAME = azure_settings.get("AZURE-COSMOSDB-DB")
+        COSMOS_CONTAINER_NAME = azure_settings.get("AZURE-COSMOSDB-CONTAINER")
+        
+        clean_id = photo_id.replace(".jpg", "").replace(".png", "").split("/")[-1]
+        logging.info(f"Polling checkpoint inspecting metadata status for ID: {clean_id}")
+
+        container = async_cosmos_client.get_database_client(COSMOS_DATABASE_NAME).get_container_client(COSMOS_CONTAINER_NAME)
         
         query = "SELECT c.status, c.rejectionReason FROM c WHERE c.id = @photoId"
         parameters = [{"name": "@photoId", "value": clean_id}]
