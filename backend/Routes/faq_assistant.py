@@ -43,12 +43,12 @@ async def ask_assistant(req: func.HttpRequest) -> func.HttpResponse:
         search_client = SearchClient(
             endpoint=search_endpoint,
             index_name=search_index,
-            credential=lifecycle._async_credential
+            credential=lifecycle.get_sync_credential()
         )
 
         openai_client = AzureOpenAI(
             azure_endpoint=openai_endpoint,
-            azure_ad_token_provider=lifecycle.get_token_provider,
+            azure_ad_token_provider=lifecycle.get_token_provider(),
             api_version="2024-02-01"
 )
 
