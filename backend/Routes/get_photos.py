@@ -13,7 +13,6 @@ async def get_photos(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Querying Cosmos DB asynchronously for uploaded photo assets.")
 
     try:
-        # 1. Fetch connection-pooled clients and configuration settings safely
         cosmos_client = await lifecycle.get_async_cosmos_client()
         azure_settings = lifecycle.get_sync_settings()
 
@@ -24,11 +23,8 @@ async def get_photos(req: func.HttpRequest) -> func.HttpResponse:
         if not all([COSMOS_DATABASE_NAME, PHOTOS_CONTAINER_NAME, storage_account_endpoint]):
             raise ValueError("Required configuration values are missing from App Configuration.")
 
-        # 2. Get the async cosmos container engine
-        database = cosmos_client.get_database_client(COSMOS_DATABASE_NAME)
-        container = database.get_container_client(PHOTOS_CONTAINER_NAME)
+        container = cosmos_client.get_database_client(COSMOS_DATABASE_NAME).get_container_client(PHOTOS_CONTAINER_NAME)
 
-        # 3. Stream query items asynchronously without blocking threads
         query = "SELECT * FROM c WHERE c.status = 'APPROVED' ORDER BY c._ts DESC"
         query_iterable = container.query_items(query=query)
         
@@ -36,8 +32,6 @@ async def get_photos(req: func.HttpRequest) -> func.HttpResponse:
         async for item in query_iterable:
             items.append(item)
 
-        # 4. Perform non-blocking Async Blob Storage Operations
-        # Using an async context manager ensures clean connection pool recycling
         async with AsyncBlobServiceClient(
             account_url=storage_account_endpoint, 
             credential=lifecycle._async_credential # Reuses the global async identity token
