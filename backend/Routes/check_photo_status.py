@@ -2,7 +2,6 @@ import json
 import logging
 import azure.functions as func
 from .factory import lifecycle
-from azure.cosmos import CosmosClient
 
 status_bp = func.Blueprint()
 
@@ -27,17 +26,19 @@ async def check_status(req: func.HttpRequest) -> func.HttpResponse:
         query = "SELECT c.status, c.rejectionReason FROM c WHERE c.id = @photoId"
         parameters = [{"name": "@photoId", "value": clean_id}]
         
-        items = list(container.query_items(
-            query=query, 
-            parameters=parameters, 
-            enable_cross_partition_query=True
-        ))
+        # Must use 'async for' with AsyncCosmosClient
+        items = [
+            item async for item in container.query_items(
+                query=query, 
+                parameters=parameters
+            )
+        ]
 
         if not items:
             logging.info(f"Registry document not found yet for ID: {clean_id}. Retrying...")
             return func.HttpResponse(body=json.dumps({"status": "PROCESSING"}), mimetype="application/json")
 
-        db_record = items[0]
+        db_record = items
         logging.info(f"Match located for index {clean_id}. Database row status: {db_record.get('status')}")
         
         return func.HttpResponse(body=json.dumps(db_record), mimetype="application/json")
