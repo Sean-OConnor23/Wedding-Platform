@@ -1,13 +1,9 @@
 import json
 import logging
-from datetime import datetime, timedelta, timezone
 import azure.functions as func
-
-# Async Azure SDK components
+from datetime import datetime, timedelta, timezone
 from azure.storage.blob.aio import BlobServiceClient as AsyncBlobServiceClient
 from azure.storage.blob import generate_blob_sas, BlobSasPermissions
-
-# Import your lifecycle infrastructure factory
 from .factory import lifecycle
 
 gallery_bp = func.Blueprint()

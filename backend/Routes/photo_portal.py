@@ -2,8 +2,8 @@ import azure.functions as func
 import logging
 import json
 import uuid
-from azure.storage.blob import BlobServiceClient
-from Utils.config import get_setting, get_credential
+from azure.storage.blob.aio import BlobServiceClient as AsyncBlobServiceClient
+from .factory import lifecycle
 
 portal_bp = func.Blueprint()
 
@@ -12,7 +12,11 @@ def upload_image(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Processing an incoming guest photo upload stream via blueprint.")
 
     try:
-        blob_service_client = BlobServiceClient(account_url=get_setting("AZURE-STORAGE-ENDPOINT"), credential=get_credential())
+        azure_settings = lifecycle.get_sync_settings()
+        
+        AZURE_STORAGE = azure_settings.get("AZURE-STORAGE-ENDPOINT")
+
+        blob_service_client = AsyncBlobServiceClient(account_url=AZURE_STORAGE, credential=lifecycle._async_credential)
         image_bytes = req.get_body()
         
         if not image_bytes:
