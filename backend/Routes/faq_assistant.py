@@ -3,21 +3,22 @@ import json
 import azure.functions as func
 from openai import AzureOpenAI
 from azure.search.documents import SearchClient
-from Utils.config import get_setting, get_credential, get_token_provider
+
+from .factory import lifecycle
 
 assistant_bp = func.Blueprint()
 
 @assistant_bp.route(route="ask-assistant", methods=["POST"])
-def ask_assistant(req: func.HttpRequest) -> func.HttpResponse:
+async def ask_assistant(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Processing a live grounded RAG query via blueprint.')
-    
-    openai_endpoint = get_setting("AZURE-OPENAI-ENDPOINT")
-    model_deployment = get_setting("AZURE-OPENAI-DEPLOYMENT")
-    search_endpoint = get_setting("AZURE-SEARCH-ENDPOINT")
-    search_index = get_setting("AZURE-SEARCH-INDEX")
 
-    # Open Routes/faq_assistant.py and update line 21 with a clean fallback string:
-    system_prompt = get_setting("WEDDING-FAQ-CONTEXT") or "You are a helpful wedding coordinator AI assistant. Use the provided context to answer guest questions accurately."
+    azure_settings = lifecycle.get_sync_settings()
+    
+    openai_endpoint = azure_settings.get("AZURE-OPENAI-ENDPOINT")
+    model_deployment = azure_settings.get("AZURE-OPENAI-DEPLOYMENT")
+    search_endpoint = azure_settings.get("AZURE-SEARCH-ENDPOINT")
+    search_index = azure_settings.get("AZURE-SEARCH-INDEX")
+    system_prompt = azure_settings.get("WEDDING-FAQ-CONTEXT") or "You are a helpful wedding coordinator AI assistant. Use the provided context to answer guest questions accurately."
 
     if not openai_endpoint or not search_endpoint:
         return func.HttpResponse(
@@ -42,12 +43,12 @@ def ask_assistant(req: func.HttpRequest) -> func.HttpResponse:
         search_client = SearchClient(
             endpoint=search_endpoint,
             index_name=search_index,
-            credential=get_credential()
+            credential=lifecycle._async_credential
         )
 
         openai_client = AzureOpenAI(
             azure_endpoint=openai_endpoint,
-            azure_ad_token_provider=get_token_provider,
+            azure_ad_token_provider=lifecycle.get_token_provider,
             api_version="2024-02-01"
 )
 
