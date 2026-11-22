@@ -2,24 +2,23 @@
 import azure.functions as func
 import json
 import logging
-from Utils.config import get_setting, get_credential
+from .factory import lifecycle
 
 registry_bp = func.Blueprint()
 
 @registry_bp.route(route="get-registry", methods=["GET"])
-def get_registry(req: func.HttpRequest) -> func.HttpResponse:
+async def get_registry(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Compiling client registry list from pre-cached database values.")
 
     try:
-        from azure.cosmos import CosmosClient
+        cosmos_client = await lifecycle.get_async_cosmos_client()
+        azure_settings = lifecycle.get_sync_settings()
         
-        COSMOS_DB_ENDPOINT = get_setting("AZURE-COSMOSDB-ENDPOINT")
-        COSMOS_DATABASE_NAME = get_setting("AZURE-COSMOSDB-DB")
-        # Ensure this pulls your exact container tracking name configuration parameter
-        REGISTRY_CONTAINER_NAME = get_setting("AZURE-COSMOSDB-REGISTRY-CONTAINER") 
-
-        cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=get_credential())
+        COSMOS_DATABASE_NAME = azure_settings.get("AZURE-COSMOSDB-DB")
+        REGISTRY_CONTAINER_NAME = azure_settings.get("AZURE-COSMOSDB-REGISTRY-CONTAINER")
+        
         container = cosmos_client.get_database_client(COSMOS_DATABASE_NAME).get_container_client(REGISTRY_CONTAINER_NAME)
+        
         # Pull wishlist items that are still active
         query = "SELECT * FROM c WHERE c.purchasedQuantity < c.requestedQuantity"
         items = list(container.query_items(query=query, enable_cross_partition_query=True))
