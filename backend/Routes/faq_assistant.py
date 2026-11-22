@@ -49,7 +49,7 @@ async def ask_assistant(req: func.HttpRequest) -> func.HttpResponse:
         openai_client = AzureOpenAI(
             azure_endpoint=openai_endpoint,
             azure_ad_token_provider=lifecycle.get_token_provider(),
-            api_version="2024-02-01"
+            api_version="2025-01-01-preview"
 )
 
         search_results = search_client.search(
