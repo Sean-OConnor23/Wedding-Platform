@@ -1,7 +1,7 @@
 import logging
 import json
 import azure.functions as func
-from openai import AzureOpenAI
+from openai import OpenAI
 from azure.search.documents import SearchClient
 
 from .factory import lifecycle
@@ -46,11 +46,9 @@ async def ask_assistant(req: func.HttpRequest) -> func.HttpResponse:
             credential=lifecycle.get_sync_credential()
         )
 
-        openai_client = AzureOpenAI(
-            azure_endpoint=openai_endpoint,
-            azure_ad_token_provider=lifecycle.get_token_provider(),
-            api_version="2025-01-01-preview"
-)
+        openai_client = OpenAI(
+            base_url=f"{openai_endpoint.rstrip('/')}/openai/v1/",
+            api_key=lifecycle.get_token_provider())
 
         search_results = search_client.search(
             search_text=guest_question,
