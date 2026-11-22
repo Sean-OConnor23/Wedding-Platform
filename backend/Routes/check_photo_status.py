@@ -38,7 +38,7 @@ async def check_status(req: func.HttpRequest) -> func.HttpResponse:
             logging.info(f"Registry document not found yet for ID: {clean_id}. Retrying...")
             return func.HttpResponse(body=json.dumps({"status": "PROCESSING"}), mimetype="application/json")
 
-        db_record = items
+        db_record = items[0]
         logging.info(f"Match located for index {clean_id}. Database row status: {db_record.get('status')}")
         
         return func.HttpResponse(body=json.dumps(db_record), mimetype="application/json")
