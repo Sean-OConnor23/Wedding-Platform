@@ -1,6 +1,6 @@
 import os
 import asyncio
-from azure.identity import DefaultAzureCredential
+from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from azure.identity.aio import DefaultAzureCredential as AsyncDefaultAzureCredential
 from azure.appconfiguration.provider import load
 from azure.cosmos.aio import CosmosClient as AsyncCosmosClient
@@ -9,9 +9,35 @@ from azure.keyvault.secrets import SecretClient
 class ProductionAppLifecycle:
     def __init__(self):
         self._settings = None
+        self._sync_credential = None
+        self._token_provider = None
+        self._search_client = None
+        self._openai_client = None
         self._async_credential = None
         self._async_cosmos_client = None
         self._lock = asyncio.Lock()
+
+    def get_sync_credential(self):
+        """
+        Cached synchronous credential using User-Assigned Managed Identity in Azure
+        (via AZURE_CLIENT_ID) and falling back to local CLI/VS Code credentials when unset.
+        """
+        if self._sync_credential is None:
+            client_id = os.environ.get("AZURE_CLIENT_ID")
+            self._sync_credential = DefaultAzureCredential(managed_identity_client_id=client_id)
+        return self._sync_credential
+
+    def get_token_provider(self):
+        """
+        Cached bearer token provider for Azure OpenAI / Cognitive Services.
+        Automatically caches and refreshes Entra ID tokens behind the scenes.
+        """
+        if self._token_provider is None:
+            self._token_provider = get_bearer_token_provider(
+                self.get_sync_credential(),
+                "https://azure.com"
+            )
+        return self._token_provider
 
     def get_sync_settings(self):
         """
