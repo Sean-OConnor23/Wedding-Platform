@@ -35,7 +35,7 @@ class ProductionAppLifecycle:
         if self._token_provider is None:
             self._token_provider = get_bearer_token_provider(
                 self.get_sync_credential(),
-                "https://azure.com"
+                "https://cognitiveservices.azure.com/.default"
             )
         return self._token_provider
 
@@ -50,7 +50,7 @@ class ProductionAppLifecycle:
             if not endpoint:
                 raise KeyError("Production Error: 'AZURE_APP_CONFIG_ENDPOINT' environment variable is missing.")
             
-            sync_credential = DefaultAzureCredential()
+            sync_credential = self.get_sync_credential()
 
             def _vault_secret_resolver(secret_uri: str) -> str:
                 # Layout: https://<vault-name>.vault.azure.net/secrets/<secret-name>/<version>
