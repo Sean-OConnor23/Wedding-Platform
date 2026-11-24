@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 
 photo_processor_bp = func.Blueprint()
 
-@photo_processor_bp.blob_trigger(arg_name="myblob", path="wedding-photos/{name}", connection="AzureWebJobsStorage")
+@photo_processor_bp.blob_trigger(arg_name="myblob", path="wedding-photos/{name}", connection="AzureWebJobsStorage", source="EventGrid")
 async def photo_processor(myblob: func.InputStream) -> None:
     try:
         raw_file_name = myblob.name.split("/")[-1]
