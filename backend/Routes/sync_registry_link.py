@@ -1,21 +1,18 @@
-# Routes/sync_registry_link.py
 import azure.functions as func
 import json
 import logging
 import urllib.request
 import urllib.parse
 import uuid
-from Utils.config import get_setting, get_credential
-from openai import AzureOpenAI
+from openai import OpenAI
+from .factory import lifecycle
 
 sync_link_bp = func.Blueprint()
 
 @sync_link_bp.route(route="sync-registry-link", methods=["POST"])
-def sync_registry_link(req: func.HttpRequest) -> func.HttpResponse:
-    logging.info("Executing production enterprise-grade registry ingestion workflow.")
-
+async def sync_registry_link(req: func.HttpRequest) -> func.HttpResponse:
     try:
-        from azure.cosmos import CosmosClient
+        logging.info("Executing production enterprise-grade registry ingestion workflow.")
         
         body = req.get_json()
         target_url = body.get("url", "").strip()
@@ -26,31 +23,23 @@ def sync_registry_link(req: func.HttpRequest) -> func.HttpResponse:
                 json.dumps({"error": "Missing target resource URL parameter"}),
                 status_code=400, mimetype="application/json"
             )
-
-        # Pull system configurations keylessly from central config
-        openai_endpoint = get_setting("AZURE-OPENAI-ENDPOINT")
-        model_deployment = get_setting("AZURE-OPENAI-DEPLOYMENT", "gpt-4o-mini")
-        COSMOS_DB_ENDPOINT = get_setting("AZURE-COSMOSDB-ENDPOINT")
-        COSMOS_DATABASE_NAME = get_setting("AZURE-COSMOSDB-DB")
-        REGISTRY_CONTAINER_NAME = get_setting("AZURE-COSMOSDB-REGISTRY-CONTAINER", "Registry")
+        cosmos_client = await lifecycle.get_async_cosmos_client()
+        azure_settings = lifecycle.get_sync_settings()
+        
+        OPENAI_ENDPOINT = azure_settings.get("AZURE-OPENAI-ENDPOINT")
+        MODEL_DEPLOYMENT = azure_settings.get("AZURE-OPENAI-DEPLOYMENT")
+        COSMOS_DATABASE_NAME = azure_settings.get("AZURE-COSMOSDB-DB")
+        REGISTRY_CONTAINER_NAME = azure_settings.get("AZURE-COSMOSDB-REGISTRY-CONTAINER")
         
         # Pull proxy mapping parameters keylessly
-        proxy_base_url = get_setting("SCRAPER-API-ENDPOINT")
-        proxy_secret_key = get_setting("SCRAPER-API-KEY")
+        proxy_base_url = azure_settings.get("SCRAPER-API-ENDPOINT")
+        proxy_secret_key = azure_settings.get("SCRAPER-API-KEY")
 
-        cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=get_credential())
         container = cosmos_client.get_database_client(COSMOS_DATABASE_NAME).get_container_client(REGISTRY_CONTAINER_NAME)
 
-        # Single-scope token provider to prevent the multi-resource AzureCliCredential crash
-        def single_scope_token_provider() -> str:
-            token_obj = get_credential().get_token("https://azure.com")
-            return token_obj.token
-
-        openai_client = AzureOpenAI(
-            azure_endpoint=openai_endpoint,
-            azure_ad_token_provider=single_scope_token_provider,
-            api_version="2024-02-01"
-        )
+        openai_client = OpenAI(
+            base_url=f"{OPENAI_ENDPOINT.rstrip('/')}/openai/v1/",
+            api_key=lifecycle.get_token_provider())
 
         page_text = ""
         
@@ -112,7 +101,7 @@ def sync_registry_link(req: func.HttpRequest) -> func.HttpResponse:
         )
 
         chat_completion = openai_client.chat.completions.create(
-            model=model_deployment,
+            model=MODEL_DEPLOYMENT,
             response_format={"type": "json_object"},
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -120,7 +109,7 @@ def sync_registry_link(req: func.HttpRequest) -> func.HttpResponse:
             ]
         )
 
-        ai_payload = json.loads(chat_completion.choices.message.content)
+        ai_payload = json.loads(chat_completion.choices[0].message.content)
         extracted_items = ai_payload.get("items", [])
 
         synced_count = 0
@@ -151,7 +140,7 @@ def sync_registry_link(req: func.HttpRequest) -> func.HttpResponse:
                 "cachedCouponCode": None
             }
 
-            container.upsert_item(body=new_registry_item)
+            await container.upsert_item(body=new_registry_item)
             synced_count += 1
 
         return func.HttpResponse(
