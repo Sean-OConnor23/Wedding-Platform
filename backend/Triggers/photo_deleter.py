@@ -1,6 +1,6 @@
 import logging
 import azure.functions as func
-from azure.cosmos import CosmosClient, exceptions
+from azure.cosmos import exceptions
 from Routes.factory import lifecycle
 
 photo_deleter_bp = func.Blueprint()
@@ -13,8 +13,8 @@ async def photo_deleter(event: func.EventGridEvent) -> None:
         cosmos_client = await lifecycle.get_async_cosmos_client()
         azure_settings = lifecycle.get_sync_settings()
 
-        COSMOS_DATABASE_NAME = lifecycle.get_sync_settings().get("AZURE-COSMOSDB-DB")
-        COSMOS_CONTAINER_NAME = lifecycle.get_sync_settings().get("AZURE-COSMOSDB-CONTAINER")
+        COSMOS_DATABASE_NAME = azure_settings.get("AZURE-COSMOSDB-DB")
+        COSMOS_CONTAINER_NAME = azure_settings.get("AZURE-COSMOSDB-CONTAINER")
 
         container = cosmos_client.get_database_client(COSMOS_DATABASE_NAME).get_container_client(COSMOS_CONTAINER_NAME)
 
@@ -31,11 +31,12 @@ async def photo_deleter(event: func.EventGridEvent) -> None:
         query = "SELECT c.id, c.uploadDate FROM c WHERE c.blobName = @blobName"
         parameters = [{"name": "@blobName", "value": target_blob_name}]
         
-        items = list(container.query_items(
-            query=query,
-            parameters=parameters,
-            enable_cross_partition_query=True
-        ))
+        items = [
+            item async for item in container.query_items(
+                query=query,
+                parameters=parameters
+            )
+        ]
 
         if not items:
             logging.info(f"No active record found tracking {target_blob_name}. Already clean.")
@@ -46,7 +47,7 @@ async def photo_deleter(event: func.EventGridEvent) -> None:
             partition_key_value = document["uploadDate"]
 
             logging.info(f"Purging Cosmos ID: {doc_id} under Partition Key: {partition_key_value}")
-            container.delete_item(item=doc_id, partition_key=partition_key_value) # Execute NoSQL removal
+            await container.delete_item(item=doc_id, partition_key=partition_key_value)
 
         logging.info("Sanitization cycle complete. Cosmos registry fully synced.")
 
