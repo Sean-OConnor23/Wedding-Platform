@@ -11,7 +11,7 @@ from .factory import lifecycle
 
 cron_bp = func.Blueprint()
 
-@cron_bp.timer_trigger(schedule="0 0 12 * * *", arg_name="myTimer", run_on_startup=True)
+@cron_bp.timer_trigger(schedule="0 0 12 * * *", arg_name="myTimer", run_on_startup=False)
 async def daily_price_scraper_cron(myTimer: func.TimerRequest) -> None:
     try:
         utc_timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
