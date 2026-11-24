@@ -44,7 +44,7 @@ async def photo_deleter(event: func.EventGridEvent) -> None:
 
         for document in items:
             doc_id = document["id"]
-            partition_key_value = document["uploadDate"]
+            partition_key_value = document["UploadDate"]
 
             logging.info(f"Purging Cosmos ID: {doc_id} under Partition Key: {partition_key_value}")
             await container.delete_item(item=doc_id, partition_key=partition_key_value)
