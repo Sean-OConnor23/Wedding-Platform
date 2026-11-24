@@ -1,8 +1,10 @@
+import os
 import azure.functions as func
 import logging
 import json
 import uuid
 from azure.storage.blob.aio import BlobServiceClient as AsyncBlobServiceClient
+from azure.identity.aio import DefaultAzureCredential as AsyncDefaultAzureCredential
 from .factory import lifecycle
 
 portal_bp = func.Blueprint()
@@ -13,7 +15,6 @@ async def upload_image(req: func.HttpRequest) -> func.HttpResponse:
 
     try:
         azure_settings = lifecycle.get_sync_settings()
-        async_cosmos_client = await lifecycle.get_async_cosmos_client()
         azure_storage = azure_settings.get("AZURE-STORAGE-ENDPOINT")
 
         image_bytes = req.get_body()
@@ -25,14 +26,18 @@ async def upload_image(req: func.HttpRequest) -> func.HttpResponse:
             )
 
         unique_filename = f"guest-photo-{uuid.uuid4()}.jpg"
+        local_cred = AsyncDefaultAzureCredential(
+            managed_identity_client_id=os.environ.get("AZURE_CLIENT_ID")
+        )
 
-        async with AsyncBlobServiceClient(account_url=azure_storage, credential=lifecycle._async_credential) as blob_service_client:
-            container_client = blob_service_client.get_container_client("wedding-photos")
-            if not await container_client.exists():
-                await container_client.create_container()
+        async with local_cred:
+            async with AsyncBlobServiceClient(account_url=azure_storage, credential=local_cred) as blob_service_client:
+                container_client = blob_service_client.get_container_client("wedding-photos")
+                if not await container_client.exists():
+                    await container_client.create_container()
 
-            blob_client = container_client.get_blob_client(unique_filename)
-            await blob_client.upload_blob(image_bytes, overwrite=True)
+                blob_client = container_client.get_blob_client(unique_filename)
+                await blob_client.upload_blob(image_bytes, overwrite=True)
 
         logging.info(f"Successfully uploaded {unique_filename} to Azure Blob Storage.")
 

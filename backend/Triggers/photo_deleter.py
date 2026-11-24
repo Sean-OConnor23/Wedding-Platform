@@ -1,25 +1,22 @@
 import logging
 import azure.functions as func
-from Utils.config import get_setting, get_credential
+from azure.cosmos import CosmosClient, exceptions
+from Routes.factory import lifecycle
 
-# 1. Initialize the Event Trigger Blueprint
 photo_deleter_bp = func.Blueprint()
 
-# 4. OFFICIAL EVENT GRID DECORATOR
-# This is no longer an HTTP endpoint. It listens natively to Azure Event Grid messages!
 @photo_deleter_bp.event_grid_trigger(arg_name="event")
-def photo_deleter(event: func.EventGridEvent) -> None:
-    logging.info(f"Native Event Grid notification captured. Event ID: {event.id}")
-
+async def photo_deleter(event: func.EventGridEvent) -> None:
     try:
-        from azure.cosmos import CosmosClient, exceptions
-        COSMOS_DB_ENDPOINT = get_setting("AZURE-COSMOSDB-ENDPOINT")
-        COSMOS_DATABASE_NAME = get_setting("AZURE-COSMOSDB-DB")
-        COSMOS_CONTAINER_NAME = get_setting("AZURE-COSMOSDB-CONTAINER")
+        logging.info(f"Native Event Grid notification captured. Event ID: {event.id}")
 
-        cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=get_credential())
-        database = cosmos_client.get_database_client(COSMOS_DATABASE_NAME)
-        container = database.get_container_client(COSMOS_CONTAINER_NAME)
+        cosmos_client = await lifecycle.get_async_cosmos_client()
+        azure_settings = lifecycle.get_sync_settings()
+
+        COSMOS_DATABASE_NAME = lifecycle.get_sync_settings().get("AZURE-COSMOSDB-DB")
+        COSMOS_CONTAINER_NAME = lifecycle.get_sync_settings().get("AZURE-COSMOSDB-CONTAINER")
+
+        container = cosmos_client.get_database_client(COSMOS_DATABASE_NAME).get_container_client(COSMOS_CONTAINER_NAME)
 
         event_data = event.get_json()
         deleted_blob_url = event_data.get("url")
@@ -46,7 +43,7 @@ def photo_deleter(event: func.EventGridEvent) -> None:
 
         for document in items:
             doc_id = document["id"]
-            partition_key_value = document["uploadDate"] # Your explicit Partition Key constraint
+            partition_key_value = document["uploadDate"]
 
             logging.info(f"Purging Cosmos ID: {doc_id} under Partition Key: {partition_key_value}")
             container.delete_item(item=doc_id, partition_key=partition_key_value) # Execute NoSQL removal
