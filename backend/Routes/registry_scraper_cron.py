@@ -1,42 +1,36 @@
-# Routes/registry_scraper_cron.py
 import datetime
 import json
 import logging
 import urllib.request
 import uuid
 import azure.functions as func
-from openai import AzureOpenAI
-from Utils.config import get_setting, get_credential, get_token_provider
+from openai import OpenAI
+from .factory import lifecycle
 
 cron_bp = func.Blueprint()
 
 @cron_bp.timer_trigger(schedule="0 0 12 * * *", arg_name="myTimer", run_on_startup=True)
-def daily_price_scraper_cron(myTimer: func.TimerRequest) -> None:
-    utc_timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
-    logging.info(f"Daily registry price optimization & delta sync cron job kicked off at: {utc_timestamp}")
-
+async def daily_price_scraper_cron(myTimer: func.TimerRequest) -> None:
     try:
-        from azure.cosmos import CosmosClient
-        # Dynamic Configuration Ingestion
-        openai_endpoint = get_setting("AZURE-OPENAI-ENDPOINT")
-        model_deployment = get_setting("AZURE-OPENAI-DEPLOYMENT")
-        COSMOS_DB_ENDPOINT = get_setting("AZURE-COSMOSDB-ENDPOINT")
-        COSMOS_DATABASE_NAME = get_setting("AZURE-COSMOSDB-DB")
-        REGISTRY_CONTAINER_NAME = get_setting("AZURE-COSMOSDB-REGISTRY-CONTAINER")
+        utc_timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        logging.info(f"Daily registry price optimization & delta sync cron job kicked off at: {utc_timestamp}")
         
-        # 🟢 HERE IS WHERE YOUR PROXY KEYS ARE READ FROM CONFIG ENGINES:
-        proxy_base_url = get_setting("SCRAPER-API-ENDPOINT")
-        proxy_secret_key = get_setting("SCRAPER-API-KEY")
+        cosmos_client = await lifecycle.get_async_cosmos_client()
+        azure_settings = lifecycle.get_sync_settings()
+        
+        OPENAI_ENDPOINT = azure_settings.get("AZURE-OPENAI-ENDPOINT")
+        MODEL_DEPLOYMENT = azure_settings.get("AZURE-OPENAI-DEPLOYMENT")
+        COSMOS_DATABASE_NAME = azure_settings.get("AZURE-COSMOSDB-DB")
+        REGISTRY_CONTAINER_NAME = azure_settings.get("AZURE-COSMOSDB-REGISTRY-CONTAINER")
+        
+        proxy_base_url = azure_settings.get("SCRAPER-API-ENDPOINT")
+        proxy_secret_key = azure_settings.get("SCRAPER-API-KEY")
 
-        # Set up core keyless infrastructure clients
-        cosmos_client = CosmosClient(url=COSMOS_DB_ENDPOINT, credential=get_credential())
         container = cosmos_client.get_database_client(COSMOS_DATABASE_NAME).get_container_client(REGISTRY_CONTAINER_NAME)
         
-        openai_client = AzureOpenAI(
-            azure_endpoint=openai_endpoint,
-            azure_ad_token_provider=get_token_provider,
-            api_version="2024-02-01"
-        )
+        openai_client = OpenAI(
+                    base_url=f"{OPENAI_ENDPOINT.rstrip('/')}/openai/v1/",
+                    api_key=lifecycle.get_token_provider())
 
         # Fetch current local registry data state from Cosmos DB
         local_items = list(container.query_items(query="SELECT * FROM c", enable_cross_partition_query=True))
@@ -166,7 +160,7 @@ def daily_price_scraper_cron(myTimer: func.TimerRequest) -> None:
                 )
 
                 chat_completion = openai_client.chat.completions.create(
-                    model=model_deployment,
+                    model=MODEL_DEPLOYMENT,
                     response_format={"type": "json_object"},
                     messages=[
                         {"role": "system", "content": system_prompt},
