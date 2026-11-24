@@ -34,7 +34,6 @@ async def upload_image(req: func.HttpRequest) -> func.HttpResponse:
             blob_client = container_client.get_blob_client(unique_filename)
             await blob_client.upload_blob(image_bytes, overwrite=True)
 
-        await lifecycle._async_credential.close()
         logging.info(f"Successfully uploaded {unique_filename} to Azure Blob Storage.")
 
         return func.HttpResponse(
