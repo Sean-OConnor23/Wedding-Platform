@@ -1,6 +1,8 @@
 import datetime
 import json
 import logging
+import re
+import ssl
 import urllib.request
 import uuid
 import azure.functions as func
@@ -33,7 +35,7 @@ async def daily_price_scraper_cron(myTimer: func.TimerRequest) -> None:
                     api_key=lifecycle.get_token_provider())
 
         # Fetch current local registry data state from Cosmos DB
-        local_items = list(container.query_items(query="SELECT * FROM c", enable_cross_partition_query=True))
+        local_items = [item async for item in container.query_items(query="SELECT * FROM c")]
         logging.info(f"Loaded {len(local_items)} local registry items to match against market indicators.")
 
         # Map local entries using lowercase titles to prevent duplicate additions
@@ -68,7 +70,7 @@ async def daily_price_scraper_cron(myTimer: func.TimerRequest) -> None:
                 url_request = urllib.request.Request(target_api_url, headers=req_headers)
                 
                 # Use a standard fallback context to ensure local handshake stability
-                import ssl
+                
                 ssl_context = ssl._create_unverified_context()
                 
                 with urllib.request.urlopen(url_request, timeout=15, context=ssl_context) as response:
@@ -114,7 +116,8 @@ async def daily_price_scraper_cron(myTimer: func.TimerRequest) -> None:
                             "cachedCouponCode": None,
                             "lastPriceCheckTimestamp": utc_timestamp
                         }
-                        container.upsert_item(body=new_gift_item)
+
+                        await container.upsert_item(body=new_gift_item)
                         logging.info(f"🟢 Autonomous Delta Capture: Added new gift to website: {title_str}")
                         local_titles_map[normalized_title] = new_gift_item
 
@@ -122,11 +125,11 @@ async def daily_price_scraper_cron(myTimer: func.TimerRequest) -> None:
                 logging.error(f"Background delta data-plane synchronization step bypassed safely: {str(delta_ex)}")
 
 
-               # =====================================================================
+        # =====================================================================
         # PART B: ENTERPRISE AI PRICE OPTIMIZATION & RE-CACHING LOOPS
         # =====================================================================
         # Refresh master list pointer to pull newly discovered delta items
-        items = list(container.query_items(query="SELECT * FROM c WHERE c.purchasedQuantity < c.requestedQuantity", enable_cross_partition_query=True))
+        items = [item async for item in container.query_items(query="SELECT * FROM c WHERE c.purchasedQuantity < c.requestedQuantity")]
         logging.info(f"Beginning price comparison loop checks for {len(items)} items.")
 
         for item in items:
@@ -192,7 +195,7 @@ async def daily_price_scraper_cron(myTimer: func.TimerRequest) -> None:
                 item["lastPriceCheckTimestamp"] = utc_timestamp
 
                 # Write database variations directly back to Cosmos DB container
-                container.upsert_item(body=item)
+                await container.upsert_item(body=item)
                 logging.info(f"Successfully re-cached market deal statistics for: {title}")
 
             except Exception as item_err:
