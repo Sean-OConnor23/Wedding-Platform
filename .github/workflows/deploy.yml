@@ -27,7 +27,7 @@ jobs:
 
       - name: Build Web Application Assets
         env:
-          NEXT_PUBLIC_API_BASE_URL: https://azurewebsites.net
+          NEXT_PUBLIC_API_BASE_URL: https://wedding-api-prod-server.azurewebsites.net/api
         run: |
           cd frontend
           npm ci
@@ -41,6 +41,8 @@ jobs:
           action: "upload"
           app_location: "./frontend"
           output_location: ".next"
+          skip_app_build: true
+
   deploy-backend:
     runs-on: ubuntu-latest
     name: Deploy Python Function Server

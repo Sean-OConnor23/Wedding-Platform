@@ -1,11 +1,16 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Button } from "@/components/Button";
 import { useFaqViewModel } from "../hooks/useFaqAssistantVm";
 
 export const FaqAssistantView: React.FC = () => {
   const model = useFaqViewModel();
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [model.messages, model.isLoading]);
 
   return (
     <section className="wd-card-base flex flex-col h-[450px]" aria-label="AI Concierge Desk">
@@ -25,21 +30,31 @@ export const FaqAssistantView: React.FC = () => {
             </div>
           </div>
         ))}
+
+        {model.isLoading && (
+          <div className="flex justify-start">
+            <div className="wd-bubble-base wd-bubble-ai opacity-75 italic">
+              Thinking...
+            </div>
+          </div>
+        )}
+
+        <div ref={bottomRef} />
       </div>
 
       <form onSubmit={model.handleSendMessage} className="wd-layout-flex-gapbox">
         <input 
           type="text" 
           value={model.chatInput} 
-          
-          
           onChange={(e) => model.setChatInput(e.target.value)} 
-          
           placeholder="Ask about hotels, schedules, dress codes..." 
-          className="wd-input-text" 
+          className="wd-input-text"
+          disabled={model.isLoading}
         />
     
-        <Button type="submit" variant="primary">Ask</Button>
+        <Button type="submit" variant="primary" disabled={model.isLoading || !model.chatInput.trim()}>
+          {model.isLoading ? "..." : "Ask"}
+        </Button>
       </form>
     </section>
   );
