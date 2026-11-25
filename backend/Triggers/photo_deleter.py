@@ -1,6 +1,8 @@
 import logging
+import traceback
 import azure.functions as func
 from azure.cosmos import exceptions
+from azure.cosmos.partition_key import NonePartitionKeyValue
 from Routes.factory import lifecycle
 
 photo_deleter_bp = func.Blueprint()
@@ -28,7 +30,7 @@ async def photo_deleter(event: func.EventGridEvent) -> None:
         target_blob_name = deleted_blob_url.split("/")[-1]
         logging.info(f"Target file matching string recognized: {target_blob_name}. Locating database references...")
 
-        query = "SELECT c.id, c.uploadDate FROM c WHERE c.blobName = @blobName"
+        query = "SELECT c.id, c.UploadDate, c.uploadDate FROM c WHERE c.blobName = @blobName"
         parameters = [{"name": "@blobName", "value": target_blob_name}]
         
         items = [
@@ -44,14 +46,18 @@ async def photo_deleter(event: func.EventGridEvent) -> None:
 
         for document in items:
             doc_id = document["id"]
-            partition_key_value = document["UploadDate"]
+            # Use UploadDate if present; otherwise NonePartitionKeyValue for legacy items missing /UploadDate
+            partition_key_value = document.get("UploadDate") or NonePartitionKeyValue
 
             logging.info(f"Purging Cosmos ID: {doc_id} under Partition Key: {partition_key_value}")
-            await container.delete_item(item=doc_id, partition_key=partition_key_value)
+            try:
+                await container.delete_item(item=doc_id, partition_key=partition_key_value)
+            except exceptions.CosmosResourceNotFoundError:
+                logging.info(f"Cosmos ID {doc_id} was already deleted. Treating as synced.")
 
         logging.info("Sanitization cycle complete. Cosmos registry fully synced.")
 
     except exceptions.AzureHttpResponseError as db_err:
         logging.error(f"Cosmos registry removal failure: {db_err.message}")
     except Exception as e:
-        logging.error(f"Unexpected data-tier anomaly: {str(e)}")
+        logging.error(f"Unexpected data-tier anomaly: {str(e)}\n{traceback.format_exc()}")
