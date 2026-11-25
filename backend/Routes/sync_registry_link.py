@@ -9,7 +9,7 @@ from .factory import lifecycle
 
 sync_link_bp = func.Blueprint()
 
-@sync_link_bp.route(route="sync-registry-link", methods=["POST"])
+@sync_link_bp.route(route="sync-registry-link", methods=["POST"], auth_level=func.AuthLevel.FUNCTION)
 async def sync_registry_link(req: func.HttpRequest) -> func.HttpResponse:
     try:
         logging.info("Executing production enterprise-grade registry ingestion workflow.")

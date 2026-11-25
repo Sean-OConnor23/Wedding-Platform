@@ -5,7 +5,7 @@ from .factory import lifecycle
 
 registry_bp = func.Blueprint()
 
-@registry_bp.route(route="get-registry", methods=["GET"])
+@registry_bp.route(route="get-registry", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
 async def get_registry(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Compiling client registry list from pre-cached database values.")
 

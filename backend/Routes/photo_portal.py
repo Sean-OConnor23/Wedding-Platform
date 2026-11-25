@@ -9,7 +9,7 @@ from .factory import lifecycle
 
 portal_bp = func.Blueprint()
 
-@portal_bp.route(route="upload-image", methods=["POST"])
+@portal_bp.route(route="upload-image", methods=["POST"], auth_level=func.AuthLevel.ANONYMOUS)
 async def upload_image(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Processing an incoming guest photo upload stream via blueprint.")
 

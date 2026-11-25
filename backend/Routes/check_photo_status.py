@@ -5,7 +5,7 @@ from .factory import lifecycle
 
 status_bp = func.Blueprint()
 
-@status_bp.route(route="check-status", methods=["GET"])
+@status_bp.route(route="check-status", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
 async def check_status(req: func.HttpRequest) -> func.HttpResponse:
     try:
         photo_id = req.params.get("id")

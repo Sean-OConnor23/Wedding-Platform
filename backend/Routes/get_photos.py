@@ -8,7 +8,7 @@ from .factory import lifecycle
 
 gallery_bp = func.Blueprint()
 
-@gallery_bp.route(route="get-photos", methods=["GET"])
+@gallery_bp.route(route="get-photos", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
 async def get_photos(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Querying Cosmos DB asynchronously for uploaded photo assets.")
 
