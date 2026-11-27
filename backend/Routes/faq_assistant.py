@@ -8,7 +8,7 @@ from .factory import lifecycle
 
 assistant_bp = func.Blueprint()
 
-@assistant_bp.route(route="ask-assistant", methods=["POST"], auth_level=func.AuthLevel.ANONYMOUS)
+@assistant_bp.route(route="ask-assistant", methods=["POST"])
 async def ask_assistant(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Processing a live grounded RAG query via blueprint.')
 

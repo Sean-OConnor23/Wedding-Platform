@@ -10,15 +10,15 @@ import { RegistryIngestionView } from "@/modules/registry/views/RegistryIngestio
 
 type TabID = "rsvp" | "gallery" | "registry" | "concierge";
 
+const TABS: { id: TabID; label: string }[] = [
+  { id: "rsvp", label: "Guest RSVP" },
+  { id: "gallery", label: "Photo Stream" },
+  { id: "registry", label: "Gift Registry" },
+  { id: "concierge", label: "AI Concierge" },
+];
+
 export default function HomeRouterPage() {
   const [activeTab, setActiveTab] = useState<TabID>("rsvp");
-
-  const tabs = [
-    { id: "rsvp" as TabID, label: "Guest RSVP" },
-    { id: "gallery" as TabID, label: "Photo Stream" },
-    { id: "registry" as TabID, label: "Gift Registry" },
-    { id: "concierge" as TabID, label: "AI Concierge" },
-  ];
 
   return (
     <main className="wd-page-viewport">
@@ -26,12 +26,17 @@ export default function HomeRouterPage() {
         
         {/* Core Header Layout */}
         <div className="wd-main-header">
-          <h1 className="text-4xl font-serif text-stone-700">Our Wedding Platform</h1>
+          <h1 className="text-3xl sm:text-4xl font-serif text-stone-700">
+            Our Wedding Platform
+          </h1>
         </div>
 
-        <div className="wd-navbar-scroller-row" role="tablist" aria-label="Wedding dashboard modules">
-        <div className="wd-navbar-centered-container">
-          {tabs.map((tab) => {
+        <div
+          role="tablist"
+          aria-label="Wedding dashboard modules"
+          className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full max-w-2xl mx-auto mb-6"
+        >
+          {TABS.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
               <button
@@ -40,14 +45,15 @@ export default function HomeRouterPage() {
                 role="tab"
                 aria-selected={isActive}
                 onClick={() => setActiveTab(tab.id)}
-                className={`wd-nav-tab-trigger ${isActive ? "wd-nav-tab-active" : "wd-nav-tab-inactive"}`}
+                className={`wd-nav-tab-trigger w-full text-center justify-center px-3 py-2.5 text-xs sm:text-sm ${
+                  isActive ? "wd-nav-tab-active" : "wd-nav-tab-inactive"
+                }`}
               >
                 {tab.label}
               </button>
             );
           })}
         </div>
-      </div>
 
         {/* Dynamic View Injection Shell */}
         <div>

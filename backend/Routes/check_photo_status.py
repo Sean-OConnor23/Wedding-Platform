@@ -11,7 +11,7 @@ status_bp = func.Blueprint()
 DATE_PREFIX_RE = re.compile(r"^guest-photo-(\d{4}-\d{2}-\d{2})-")
 
 
-@status_bp.route(route="check-status", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
+@status_bp.route(route="check-status", methods=["GET"])
 async def check_status(req: func.HttpRequest) -> func.HttpResponse:
     photo_id = req.params.get("id")
     if not photo_id:

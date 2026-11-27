@@ -29,7 +29,7 @@ def _get_blob_service_client(storage_url: str) -> AsyncBlobServiceClient:
     return _blob_service_client
 
 
-@portal_bp.route(route="upload-image", methods=["POST"], auth_level=func.AuthLevel.ANONYMOUS)
+@portal_bp.route(route="upload-image", methods=["POST"])
 async def upload_image(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Processing an incoming guest photo upload stream via blueprint.")
 

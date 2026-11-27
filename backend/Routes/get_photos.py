@@ -50,7 +50,7 @@ async def _get_cached_delegation_key(
     return _cached_delegation_key, sas_start, sas_expiry
 
 
-@gallery_bp.route(route="get-photos", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
+@gallery_bp.route(route="get-photos", methods=["GET"])
 async def get_photos(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Querying Cosmos DB asynchronously for uploaded photo assets.")
 

@@ -5,7 +5,7 @@ from .factory import lifecycle
 
 rsvp_bp = func.Blueprint()
 
-@rsvp_bp.route(route="get-invite", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
+@rsvp_bp.route(route="get-invite", methods=["GET"])
 async def get_invite(req: func.HttpRequest) -> func.HttpResponse:
     try:
         logging.info("Processing email lookup query request.")
