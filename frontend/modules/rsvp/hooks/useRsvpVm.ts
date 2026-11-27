@@ -59,7 +59,12 @@ export function useRsvpVm() {
 
         const data: unknown = await res.json();
 
-        if (!data || typeof data !== "object" || ("found" in data && data.found === false) || !("id" in data)) {
+        if (
+          !data ||
+          typeof data !== "object" ||
+          ("found" in data && data.found === false) ||
+          !("id" in data)
+        ) {
           setInvite(null);
           setIsError(true);
           setMessage("We couldn't find an invitation matching your signed-in email account.");
