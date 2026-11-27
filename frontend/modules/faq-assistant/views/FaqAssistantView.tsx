@@ -40,7 +40,7 @@ export function FaqAssistantView() {
 
   return (
     <section
-      className="wd-card-base flex flex-col h-[450px]"
+      className="wd-card-base flex flex-col h-112.5"
       aria-label="Wedding FAQ Assistant"
     >
       <div className="flex items-center justify-between mb-4">
@@ -78,7 +78,7 @@ export function FaqAssistantView() {
             >
               <div
                 role={isSystem ? "alert" : undefined}
-                className={`wd-bubble-base whitespace-pre-wrap break-words ${
+                className={`wd-bubble-base whitespace-pre-wrap wrap-break-word ${
                   isGuest
                     ? "wd-bubble-guest"
                     : isSystem
