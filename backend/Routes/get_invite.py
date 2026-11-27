@@ -56,7 +56,7 @@ async def get_invite(req: func.HttpRequest) -> func.HttpResponse:
                 mimetype="application/json",
             )
 
-        doc = items
+        doc = items[0]
         clean_invite = {
             "id": doc.get("id"),
             "guestName": doc.get("guestName", ""),
