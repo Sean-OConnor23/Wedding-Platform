@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useRef, useState, DragEvent, KeyboardEvent } from "react";
-import { useUploadViewModel } from "../hooks/useUploadViewModel";
+import { useUploadViewModel } from "../hooks/useUploadImageVm";
 import { Button } from "@/components/Button";
 
 export function UploadImageView() {
