@@ -43,20 +43,29 @@ export function useRsvpVm() {
           { signal }
         );
 
+        if (res.status === 404) {
+          setInvite(null);
+          setIsError(true);
+          setMessage("We couldn't find an invitation matching your signed-in email account.");
+          return;
+        }
+
         if (!res.ok) {
-          throw new Error(
-            res.status === 404
-              ? "We couldn't find an invitation matching your signed-in email account."
-              : `Unable to load invitation (${res.status}).`
-          );
+          throw new Error(`Unable to load invitation (${res.status}).`);
         }
 
         const data: unknown = await res.json();
-        if (!data || typeof data !== "object" || !("id" in data)) {
-          throw new Error("Received an invalid invitation payload.");
+
+        // Support { found: false } or null when backend returns 200 OK for uninvited emails
+        if (!data || typeof data !== "object" || ("found" in data && data.found === false) || !("id" in data)) {
+          setInvite(null);
+          setIsError(true);
+          setMessage("We couldn't find an invitation matching your signed-in email account.");
+          return;
         }
 
         setInvite(data as InviteData);
+
       } catch (err: unknown) {
         if (err instanceof DOMException && err.name === "AbortError") {
           return;

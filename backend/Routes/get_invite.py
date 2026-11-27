@@ -35,9 +35,9 @@ async def get_invite(req: func.HttpRequest) -> func.HttpResponse:
 
         if not items:
             return func.HttpResponse(
-                json.dumps({"error": "No invitation matches this identity profile"}),
-                status_code=404, mimetype="application/json"
-            )
+            body=json.dumps({"found": False}),
+            status_code=200,
+            mimetype="application/json")
 
         return func.HttpResponse(
             json.dumps(items), status_code=200, mimetype="application/json"
