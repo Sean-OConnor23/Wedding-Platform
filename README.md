@@ -132,3 +132,11 @@ This is the website I have created for my upcoming wedding. It utilizes a variet
      - Javascript Runtime Environment
 4. Lazy Importing In Serverless Environments
   - Reduces cold start times in serverless environments by deferring the loading of heavy modules until they are actually called.
+
+## Questions/Feedback
+- James
+  - How do I handle RSVP? Currently its linked on an email basis. So how would that be handled.
+  - Add photos
+  - Bridal Party
+  - Lodging
+  - When adding an email, it wont let me create an rsvp from scratch. (Missing fields)
