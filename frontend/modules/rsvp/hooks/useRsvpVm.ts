@@ -23,7 +23,7 @@ export function useRsvpVm() {
 
   const session = sessionContext ? sessionContext.data : null;
   const status = sessionContext ? sessionContext.status : "unauthenticated";
-  const userEmail = session?.user?.email?.trim() || "";
+  const userEmail = session?.user?.email?.trim().toLowerCase() || "";
 
   const [invite, setInvite] = useState<InviteData | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -33,15 +33,16 @@ export function useRsvpVm() {
 
   const fetchInvite = useCallback(
     async (email: string, signal?: AbortSignal) => {
+      const normalizedEmail = email.trim().toLowerCase();
+      if (!normalizedEmail) return;
+
       setLoading(true);
       setMessage("");
       setIsError(false);
 
       try {
-
-        const userEmail =session?.user?.email?.trim().toLowerCase() || "";
         const res = await fetch(
-          `${API_BASE}/get-invite?email=${encodeURIComponent(userEmail)}`,
+          `${API_BASE}/get-invite?email=${encodeURIComponent(normalizedEmail)}`,
           { signal }
         );
 
@@ -58,7 +59,6 @@ export function useRsvpVm() {
 
         const data: unknown = await res.json();
 
-        // Support { found: false } or null when backend returns 200 OK for uninvited emails
         if (!data || typeof data !== "object" || ("found" in data && data.found === false) || !("id" in data)) {
           setInvite(null);
           setIsError(true);
@@ -67,7 +67,6 @@ export function useRsvpVm() {
         }
 
         setInvite(data as InviteData);
-
       } catch (err: unknown) {
         if (err instanceof DOMException && err.name === "AbortError") {
           return;
