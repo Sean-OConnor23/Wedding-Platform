@@ -10,7 +10,7 @@ async def get_invite(req: func.HttpRequest) -> func.HttpResponse:
     try:
         logging.info("Processing email lookup query request.")
             
-        email = req.params.get("email")
+        email = (req.params.get("email") or "").strip().lower()
         if not email:
             return func.HttpResponse(
                 json.dumps({"error": "Missing email parameter"}),
@@ -25,7 +25,7 @@ async def get_invite(req: func.HttpRequest) -> func.HttpResponse:
         container = cosmos_client.get_database_client(COSMOS_DATABASE_NAME).get_container_client(RSVP_CONTAINER_NAME)
         
         query = "SELECT * FROM c WHERE c.email = @email"
-        parameters = [{"name": "@email", "value": email.strip().lower()}]
+        parameters = [{"name": "@email", "value": email}]
         
         items = [
             item async for item in container.query_items(

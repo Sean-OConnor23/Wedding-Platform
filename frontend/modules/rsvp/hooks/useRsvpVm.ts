@@ -38,8 +38,10 @@ export function useRsvpVm() {
       setIsError(false);
 
       try {
+
+        const userEmail =session?.user?.email?.trim().toLowerCase() || "";
         const res = await fetch(
-          `${API_BASE}/get-invite?email=${encodeURIComponent(email)}`,
+          `${API_BASE}/get-invite?email=${encodeURIComponent(userEmail)}`,
           { signal }
         );
 
