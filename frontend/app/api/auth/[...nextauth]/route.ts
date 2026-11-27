@@ -1,39 +1,31 @@
-// app/api/auth/[...nextauth]/route.ts
-import NextAuth from "next-auth";
+import NextAuth, { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import FacebookProvider from "next-auth/providers/facebook";
+import { NextRequest } from "next/server";
 import { getAzureSecrets } from "@/lib/azureConfig";
-import { NextRequest, NextResponse } from "next/server";
 
-async function auth(req: NextRequest, res: any) {
-  try {
-    const azure = await getAzureSecrets();
+async function buildAuthOptions(): Promise<NextAuthOptions> {
+  const secrets = await getAzureSecrets();
 
-    return await NextAuth(req, res, {
-      providers: [
-        GoogleProvider({
-          clientId: azure["LOGIN-GOOGLE-CLIENT-ID"],
-          clientSecret: azure["LOGIN-GOOGLE-SECRET"],
-        }),
-        FacebookProvider({
-          clientId: azure["LOGIN-FACEBOOK-APP-ID"],
-          clientSecret: azure["LOGIN-FACEBOOK-SECRET"],
-        }),
-      ],
-      secret: azure["LOGIN-NEXTAUTH-SECRET"],
-    });
-  } catch (err: any) {
-    console.error("NextAuth SSR Crash:", err);
-    return NextResponse.json(
-      {
-        error: err?.message || String(err),
-        stack: err?.stack,
-        hasEndpoint: Boolean(process.env.AZURE_APPCONFIG_ENDPOINT),
-        hasClientId: Boolean(process.env.AZURE_CLIENT_ID),
-      },
-      { status: 500 }
-    );
-  }
+  return {
+    secret: secrets["LOGIN-NEXTAUTH-SECRET"],
+    providers: [
+      GoogleProvider({
+        clientId: secrets["LOGIN-GOOGLE-CLIENT-ID"],
+        clientSecret: secrets["LOGIN-GOOGLE-SECRET"],
+      }),
+      FacebookProvider({
+        clientId: secrets["LOGIN-FACEBOOK-APP-ID"],
+        clientSecret: secrets["LOGIN-FACEBOOK-SECRET"],
+      }),
+    ],
+  };
 }
 
-export { auth as GET, auth as POST };
+async function handler(req: NextRequest, context: any) {
+  const authOptions = await buildAuthOptions();
+  return NextAuth(req, context, authOptions);
+}
+
+export { handler as GET, handler as POST };
+

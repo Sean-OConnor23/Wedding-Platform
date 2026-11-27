@@ -1,58 +1,111 @@
-import { DefaultAzureCredential } from "@azure/identity";
-import { AppConfigurationClient, parseSecretReference } from "@azure/app-configuration";
-import { SecretClient, parseKeyVaultSecretIdentifier } from "@azure/keyvault-secrets";
+import {
+  ClientSecretCredential,
+  AzureCliCredential,
+  TokenCredential,
+} from "@azure/identity";
+import {
+  AppConfigurationClient,
+  parseSecretReference,
+} from "@azure/app-configuration";
+import {
+  SecretClient,
+  parseKeyVaultSecretIdentifier,
+} from "@azure/keyvault-secrets";
 
-let configCache: Record<string, string> | null = null;
+interface CachedSecrets {
+  data: Record<string, string>;
+  expiresAt: number;
+}
 
-export async function getAzureSecrets() {
-  if (configCache) return configCache;
+const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+let secretCache: CachedSecrets | null = null;
+let inFlightFetch: Promise<Record<string, string>> | null = null;
 
-  const endpoint = process.env.AZURE_APPCONFIG_ENDPOINT;
-  if (!endpoint) {
-    throw new Error("AZURE_APPCONFIG_ENDPOINT is not defined in SWA Environment Variables.");
+function getCredential(): TokenCredential {
+  if (process.env.NODE_ENV === "production") {
+    const tenantId = process.env.AZURE_TENANT_ID?.trim();
+    const clientId = process.env.AZURE_CLIENT_ID?.trim();
+    const clientSecret = process.env.AZURE_CLIENT_SECRET?.trim();
+
+    if (!tenantId || !clientId || !clientSecret) {
+      throw new Error(
+        "Missing AZURE_TENANT_ID, AZURE_CLIENT_ID, or AZURE_CLIENT_SECRET in production."
+      );
+    }
+
+    return new ClientSecretCredential(tenantId, clientId, clientSecret);
   }
 
-  const credential = new DefaultAzureCredential();
-  const client = new AppConfigurationClient(endpoint, credential);
+  return new AzureCliCredential();
+}
 
-  const targetKeys = [
-    "LOGIN-GOOGLE-CLIENT-ID",
-    "LOGIN-GOOGLE-SECRET",
-    "LOGIN-FACEBOOK-APP-ID",
-    "LOGIN-FACEBOOK-SECRET",
-    "LOGIN-NEXTAUTH-SECRET"
-  ];
+export async function getAzureSecrets(): Promise<Record<string, string>> {
+  const now = Date.now();
 
-  const fetched: Record<string, string> = {};
+  // Return valid cached secrets
+  if (secretCache && now < secretCache.expiresAt) {
+    return secretCache.data;
+  }
 
-  for (const key of targetKeys) {
-    try {
-      const setting = await client.getConfigurationSetting({ key });
+  // Deduplicate concurrent cold-start requests
+  if (inFlightFetch) {
+    return inFlightFetch;
+  }
+
+  inFlightFetch = (async () => {
+    const endpoint = process.env.AZURE_APPCONFIG_ENDPOINT?.trim();
+    if (!endpoint) {
+      throw new Error("AZURE_APPCONFIG_ENDPOINT is not configured.");
+    }
+
+    const credential = getCredential();
+    const appConfigClient = new AppConfigurationClient(endpoint, credential);
+
+    const targetKeys = [
+      "LOGIN-GOOGLE-CLIENT-ID",
+      "LOGIN-GOOGLE-SECRET",
+      "LOGIN-FACEBOOK-APP-ID",
+      "LOGIN-FACEBOOK-SECRET",
+      "LOGIN-NEXTAUTH-SECRET",
+    ];
+
+    const fetched: Record<string, string> = {};
+
+    for (const key of targetKeys) {
+      const setting = await appConfigClient.getConfigurationSetting({ key });
 
       if (setting.value && setting.contentType?.includes("keyvaultref")) {
         const secretRef = parseSecretReference(setting as any);
-        const secretUrl = secretRef.value.secretId;
-        const { name: secretName, vaultUrl } = parseKeyVaultSecretIdentifier(secretUrl);
+        const { name: secretName, vaultUrl } = parseKeyVaultSecretIdentifier(
+          secretRef.value.secretId
+        );
 
         const secretClient = new SecretClient(vaultUrl, credential);
         const secretBundle = await secretClient.getSecret(secretName);
 
         if (!secretBundle.value) {
-          throw new Error(`Key Vault secret ${secretName} returned empty.`);
+          throw new Error(`Key Vault secret '${secretName}' is empty.`);
         }
         fetched[key] = secretBundle.value;
       } else {
         if (!setting.value) {
-          throw new Error(`App Config setting ${key} returned empty.`);
+          throw new Error(`App Configuration key '${key}' is empty.`);
         }
         fetched[key] = setting.value;
       }
-    } catch (error: any) {
-      // Throw immediately instead of caching empty strings
-      throw new Error(`Failed to load Azure secret '${key}': ${error?.message || error}`);
     }
-  }
 
-  configCache = fetched;
-  return fetched;
+    secretCache = {
+      data: fetched,
+      expiresAt: Date.now() + CACHE_TTL_MS,
+    };
+
+    return fetched;
+  })();
+
+  try {
+    return await inFlightFetch;
+  } finally {
+    inFlightFetch = null;
+  }
 }
